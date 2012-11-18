@@ -1,0 +1,27 @@
+{
+  "name": "rooms",
+  "dependencies": {
+    "ForbesLindesay/curry": "*",
+    "ForbesLindesay/queue": "*",
+    "ForbesLindesay/base64-encode": "*",
+    "component/find": "*"
+  },
+  "scripts": [
+    "app.js",
+    "model.js",
+    "views/static-page.js",
+    "views/staircase.js",
+    "views/room.js",
+    "views/projector.js",
+    "views/navigation-table-edit.js",
+    "views/allocation-edit.js",
+    "markdown/load-markdown.js",
+    "markdown/edit-markdown.js",
+    "markdown/converter.js",
+    "helpers/table.js",
+    "helpers/navigation-item-order.js",
+    "helpers/status-display.js",
+    "libraries/pagedown.js",
+    "template.js"
+  ]
+}

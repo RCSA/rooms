@@ -1,0 +1,13 @@
+{
+  "name": "queue",
+  "repo": "ForbesLindesay/queue",
+  "description": "A queue built from two stacks",
+  "version": "0.0.1",
+  "keywords": [],
+  "dependencies": {},
+  "development": {},
+  "scripts": [
+    "index.js"
+  ],
+  "twitter": "@ForbesLindesay"
+}
