@@ -4,7 +4,9 @@
     "ForbesLindesay/curry": "*",
     "ForbesLindesay/queue": "*",
     "ForbesLindesay/base64-encode": "*",
-    "component/find": "*"
+    "component/find": "*",
+    "component/group-by": "*",
+    "component/emitter": "*"
   },
   "scripts": [
     "app.js",
@@ -22,6 +24,9 @@
     "helpers/navigation-item-order.js",
     "helpers/status-display.js",
     "libraries/pagedown.js",
-    "template.js"
+    "libraries/path.js",
+    "template.js",
+    "server.js",
+    "stream.js"
   ]
 }

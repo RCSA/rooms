@@ -3,6 +3,7 @@ var converter = require('./converter');
 var setStatus = require('../helpers/status-display').setStatus;
 var Markdown = require('../libraries/pagedown.js');
 var template = require('../template');
+var server = require('../server');
 
 var imgurAPIKey = "e0b484465d77858ebaf6b3c7c1732909";
 function upload(file, callback) {
@@ -107,14 +108,14 @@ function createEditor() {
 module.exports = function (item) {
     /// <summary>Loads markdown and displays it in an edit control on ghe page, still in the markdown section.</summary>
     /// <param name="ID" type="String">The ID of the entity to edit markdown for.</param>
-    AJAX.markdown.read(item, function (md) {
+    server.markdown.read(item, function (md) {
         $("#markdown").html(template("markdownEdit", { Content: md }))
             .find("form").submit(function (e) {
             var form = e.target;
             var content = form.content.value;
             if (content !== md) {
                 setStatus("Saving description");
-                AJAX.markdown.update(item.id, content, function (result) {
+                server.markdown.update(item.id, content, function (result) {
                     history.go(-1);
                     setStatus("Description saved", 2000);
                 });

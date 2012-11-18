@@ -3,29 +3,28 @@ var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
+var refresh = require('../libraries/path').refresh;
+var groupBy = require('group-by');
+var stream = require('../stream');
 
 var homeHTML;
-var selectRoom = function (room) {
-    var that = Object.create(room);
-    if (room.rentband === 0) {
-        that.css = "permanentlyUnavailable";
-    } else {
-        that.css = ""
-    }
-    return that;
+function selectStaircaseGroups(staircaseGroups) {
+    return Object.keys(staircaseGroups)
+        .map(function (staircaseID) {
+            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            staircase.rooms = staircaseGroups[staircaseID]
+                .filter(function (room) {
+                    return room.rentband !== 0;
+                });
+            return staircase;
+        });
 }
-var selectStaircaseGroup = function (roomsInStaircase) {
-    var staircaseID = roomsInStaircase[0].parentid;
-    var that = Object.create(find(app.Navigation, c.idIs(staircaseID)));
-    that.rooms = roomsInStaircase.map(selectRoom);
-    return that;
-};
 var normalInterval = 5000;
 var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {
         exports.exit();
-        Path.refresh();
+        refresh();
     }
 });
 var displayUnavailableRooms = true;
@@ -51,7 +50,8 @@ exports.enter = function () {
                 $(".unavailable").fadeOut(2000);
             }
         });
-        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).groupBy(c.sameStaircase).map(selectStaircaseGroup).sort(navigationItemOrder);
+        var mappedStaircases = selectStaircaseGroups(groupBy(app.Navigation.filter(c.typeIs("room")), 'parentid'))
+            .sort(navigationItemOrder);
         $("#page").removeClass("page").addClass("projector");
         $("body").removeClass("background");
         $("#colmask").html(template("projector", { staircases: mappedStaircases }));

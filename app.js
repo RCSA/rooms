@@ -11,6 +11,9 @@ var navigationItemOrder = require('./helpers/navigation-item-order');
 var find = require('find');
 var loginURI = require('./helpers/status-display').uri;
 var template = require('./template');
+var Path = require('./libraries/path');
+var server = require('./server');
+var stream = require('./stream');
 
 var $ = jQuery;
 exports.SelectedStaircaseID = '';
@@ -123,7 +126,8 @@ function mapPaths() {
         Path.map(path).to(function () {
             var item = find(exports.Navigation, c.idIs(this.params[spec.id] || spec.id)) || spec.item;
             var parentid = this.params[spec.parentIDs] || spec.parentIDs;
-            if (!parentid || (item.parentid === parentid) || (spec.parentIDs.some && spec.parentIDs.some(c.equals(item.parentid)))) {
+            if (!parentid || (item.parentid === parentid) || 
+                (spec.parentIDs.some && spec.parentIDs.some(function (id) { return id == item.parentid; }))) {
                 navigateToItem(item, spec.edit, spec.enter);
             }
         }).exit(exit);
@@ -199,7 +203,7 @@ function mapPaths() {
 function run() {
     var isReady = false;
     (function (ready) {
-        AJAX.navigation.read(function (data) {
+        server.navigation.read(function (data) {
             /// <summary>Load all the navigationd ata up front then start the applicaion.</summary>
             /// <param name="data" type="Array">The Navigation Data</param>
             exports.Navigation = data.map(model.navigationItem).sort(navigationItemOrder);

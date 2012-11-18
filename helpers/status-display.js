@@ -1,4 +1,5 @@
 var base64 = require('base64-encode');
+var stream = require('../stream');
 var dateUpdated;
 var hasmessage;
 var isAuthenticated = undefined;

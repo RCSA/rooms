@@ -100,9 +100,3 @@ module.exports.navigationItem = function (spec) {
 
     return that;
 }
-module.exports.floor = function (rooms) {
-    return {
-        Name: rooms[0].floorDescription(),
-        Rooms: rooms
-    };
-}

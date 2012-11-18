@@ -5,6 +5,7 @@ var toTable = require('../helpers/table');
 var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
+var server = require('../server');
 
 function validBathroom(n) {
     return !isNaN(Number(n)) && Number(n) >= 0;
@@ -77,7 +78,7 @@ function create(e) {
         app.Navigation.push(model.navigationItem(spec));
         app.Navigation = app.Navigation.sort(navigationItemOrder);
         setStatus("Saving...");
-        AJAX.navigation.create(spec, function (result) {
+        server.navigation.create(spec, function (result) {
             setStatus("Saved", 2000);
         });
         view.navigationTableEdit(model.navigationItem(spec));
@@ -96,7 +97,7 @@ function update(id, name, value) {
             cascadeIDChange(id, value);
         }
         setStatus("Saving...");
-        AJAX.navigation.update(id, name, value, function (result) {
+        server.navigation.update(id, name, value, function (result) {
             setStatus("Saved", 2000);
         });
     } else {
@@ -126,7 +127,7 @@ module.exports = function (item) {
             app.Navigation.splice(index, 1);
             view.navigationTableEdit();
             setStatus("Deleting...");
-            AJAX.navigation.del(id, function (result) {
+            server.navigation.del(id, function (result) {
                 setStatus("Deleted", 2000);
             });
         }

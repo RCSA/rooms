@@ -5,6 +5,10 @@ var find = require('find');
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var loadMarkdown = require('../markdown/load-markdown');
+var refresh = require('../libraries/path').refresh;
+var groupBy = require('group-by');
+var server = require('../server');
+var stream = require('../stream');
 
 var selectRoomAllocation = curry(function (allocations, room) {
     var allocation = allocations[room.id];
@@ -14,16 +18,24 @@ var selectRoomAllocation = curry(function (allocations, room) {
         allocation: allocation || ""
     };
 });
+function selectStaircaseGroups(allocations, staircaseGroups) {
+    return Object.keys(staircaseGroups)
+        .map(function (staircaseID) {
+            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            staircase.rooms = staircaseGroups[staircaseID].map(selectRoomAllocation(allocations));
+            return staircase;
+        });
+}
 var selectStaircaseGroup = curry(function (allocations, roomsInStaircase) {
     var staircaseID = roomsInStaircase[0].parentid;
-    var that = Object.create(find(app.Navigation, c.idIs(staircaseID)));
-    that.rooms = roomsInStaircase.map(selectRoomAllocation(allocations));
-    return that;
+    var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+    staircase.rooms = roomsInStaircase.map(selectRoomAllocation(allocations));
+    return staircase;
 });
 var isInAllocationEdit = false;
 $("#isThisYears").click(function () {
     if (isInAllocationEdit) {
-        Path.refresh();
+        refresh();
     }
 });
 var oldItem;
@@ -35,8 +47,11 @@ exports.enter = function (item) {
     stream.getAllocations(function (allocationsData) {
         var allocations = allocationsData.defaultAllocations();
         var year = allocations.year;
-        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).filter(c.not(c.isPermanentlyUnavailable))
-            .groupBy(c.sameStaircase).map(selectStaircaseGroup(allocations)).sort(navigationItemOrder);
+        var mappedStaircases = selectStaircaseGroups(allocations, groupBy(app.Navigation
+            .filter(c.typeIs("room"))
+            .filter(function (room) { return room.rentband !== 0; }),
+            'parentid'))
+            .sort(navigationItemOrder);
         $("#templated")
             .html(template("allocationEdit", { staircases: mappedStaircases, year: year }))
             .find("form").submit(function (e) {
@@ -46,7 +61,7 @@ exports.enter = function (item) {
                 if (form.attr("data-old-allocation") !== value) {
                     form.attr("data-old-allocation", value);
                     setStatus("Updating Allocation");
-                    AJAX.allocation.update(form.attr("data-roomid"), year, value, function (result) {
+                    server.allocation.update(form.attr("data-roomid"), year, value, function (result) {
                         setStatus(result, 5000);
                     });
                 }
