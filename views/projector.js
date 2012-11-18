@@ -2,6 +2,7 @@
 var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
 
 var homeHTML;
 var selectRoom = function (room) {
@@ -23,7 +24,7 @@ var normalInterval = 5000;
 var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {
-        view.projector.exit();
+        exports.exit();
         Path.refresh();
     }
 });
@@ -50,7 +51,7 @@ exports.enter = function () {
                 $(".unavailable").fadeOut(2000);
             }
         });
-        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).groupBy(c.sameStaircase).map(selectStaircaseGroup).sort(o.navigationItemComparer);
+        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).groupBy(c.sameStaircase).map(selectStaircaseGroup).sort(navigationItemOrder);
         $("#page").removeClass("page").addClass("projector");
         $("body").removeClass("background");
         $("#colmask").html(template("projector", { staircases: mappedStaircases }));

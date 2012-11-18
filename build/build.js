@@ -428,217 +428,211 @@ var find = require('find');
 var loginURI = require('./helpers/status-display').uri;
 var template = require('./template');
 
-module.exports = (function ($) {
-    "use strict";
-    var that = {
-        SelectedStaircaseID: "",
-        SelectedRoomID: "",
-        Navigation: [],
-        RentBands: [],
-        authorization: false
-    };
+var $ = jQuery;
+exports.SelectedStaircaseID = '';
+exports.SelectedRoomID = '';
+exports.Navigation = [];
+exports.RentBands = [];
+exports.authorization = false;
 
-    //Allocations
-    $(function () {
-        var currentAllocations = false;
-        function tryRefreshAllocationsDisplay() {
-            if (currentAllocations) {
-                refreshAllocationsDisplay(currentAllocations);
-            }
-            return module.exports;
+
+//Allocations
+$(function () {
+    var currentAllocations = false;
+    function tryRefreshAllocationsDisplay() {
+        if (currentAllocations) {
+            refreshAllocationsDisplay(currentAllocations);
         }
-        function refreshAllocationsDisplay(allocations) {
-            currentAllocations = allocations;
-            $(".allocationDisplay").each(function () {
-                var self = $(this);
-                var yearTable = {};
-                if (self.attr("data-year") === "current") {
-                    yearTable = allocations.allocationsThisYear;
-                } else if (self.attr("data-year") === "next") {
-                    yearTable = allocations.allocationsNextYear;
-                } else {
-                    yearTable = allocations.defaultAllocations();
-                }
-                self.html(yearTable[self.attr("data-roomid")] || yearTable.defaultText);
-            });
-        }
-        stream.on('allocations', refreshAllocationsDisplay);
-        that.refreshAllocationsDisplay = tryRefreshAllocationsDisplay;
-    });
-    //Authentication
-    $(function () {
-        var currentAuth = false;
-        var currentItem;
-        function tryCheckAuth(item) {
-            currentItem = item;
-            if (that.authorization) {
-                checkAuth(that.authorization, true);
-            }
-            return module.exports;
-        }
-        function checkAuth(auth, skipNavigationReload) {
-            that.authorization = auth;
-            if (skipNavigationReload !== true) {
-                that.reloadNavigation();
-            }
-            if (auth.isAuthenticated) {
-                $("#login").hide();
+        return exports;
+    }
+    function refreshAllocationsDisplay(allocations) {
+        currentAllocations = allocations;
+        $(".allocationDisplay").each(function () {
+            var self = $(this);
+            var yearTable = {};
+            if (self.attr("data-year") === "current") {
+                yearTable = allocations.allocationsThisYear;
+            } else if (self.attr("data-year") === "next") {
+                yearTable = allocations.allocationsNextYear;
             } else {
-                $("#login").show();
+                yearTable = allocations.defaultAllocations();
             }
-            if (currentItem) {
-                if (auth.markdownEdit && ((currentItem.isRoom && currentItem.isRoom()) ||
-                    (currentItem.isStaircase && currentItem.isStaircase()) ||
-                    module.exports.authorization.markdownSpecialEdit)) {
-                    $("#editLink").show();
-                } else {
-                    $("#editLink").hide();
-                }
-                if (auth.isAuthenticated === false && (location.hash === "#/projector/" || location.hash === "#/navigationTableEdit/" || location.hash === "#/allocationEdit/" || (/\/edit\/$/).test(location.hash))) {
-                    var uri = loginURI();
-                    location.hash = "#/";
-                    window.location.href = uri;
-                    return;
-                }
-            }
+            self.html(yearTable[self.attr("data-roomid")] || yearTable.defaultText);
+        });
+    }
+    stream.on('allocations', refreshAllocationsDisplay);
+    exports.refreshAllocationsDisplay = tryRefreshAllocationsDisplay;
+});
+//Authentication
+$(function () {
+    var currentAuth = false;
+    var currentItem;
+    function tryCheckAuth(item) {
+        currentItem = item;
+        if (exports.authorization) {
+            checkAuth(exports.authorization, true);
         }
-        stream.on('auth', checkAuth);
-        that.checkAuth = tryCheckAuth;
-    });
-
-    that.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
-        /// <summary>Updates the display of navigation menues to include what's currently selected</summary>
-        if (arguments.length > 0) {
-            that.SelectedStaircaseID = SelectedStaircaseID;
-            that.SelectedRoomID = SelectedRoomID;
+        return exports;
+    }
+    function checkAuth(auth, skipNavigationReload) {
+        exports.authorization = auth;
+        if (skipNavigationReload !== true) {
+            exports.reloadNavigation();
         }
-
-        function permission(item) {
-            //Display projector link because it can be used to log in.
-            if (item.id === "navigationTableEdit") {
-                return that.authorization && that.authorization.navigationEdit;
-            } else if (item.id === "allocationEdit") {
-                return that.authorization && that.authorization.allocationsEdit;
+        if (auth.isAuthenticated) {
+            $("#login").hide();
+        } else {
+            $("#login").show();
+        }
+        if (currentItem) {
+            if (auth.markdownEdit && ((currentItem.isRoom && currentItem.isRoom()) ||
+                (currentItem.isStaircase && currentItem.isStaircase()) ||
+                exports.authorization.markdownSpecialEdit)) {
+                $("#editLink").show();
             } else {
-                return true;
+                $("#editLink").hide();
+            }
+            if (auth.isAuthenticated === false && (location.hash === "#/projector/" || location.hash === "#/navigationTableEdit/" || location.hash === "#/allocationEdit/" || (/\/edit\/$/).test(location.hash))) {
+                var uri = loginURI();
+                location.hash = "#/";
+                window.location.href = uri;
+                return;
             }
         }
-        var nav = that.Navigation.filter(permission);
+    }
+    stream.on('auth', checkAuth);
+    exports.checkAuth = tryCheckAuth;
+});
 
-        //Load Staircases
-        var Staircases = nav.filter(c.parentIs("Root"));
-        $("#staircases").html(template("NavigationList", { Links: Staircases }));
-
-        //Load Rooms
-        var Rooms = nav.filter(c.parentIs(that.SelectedStaircaseID));
-        $("#rooms").html(template("NavigationList", { Links: Rooms }));
+exports.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
+    /// <summary>Updates the display of navigation menues to include what's currently selected</summary>
+    if (arguments.length > 0) {
+        exports.SelectedStaircaseID = SelectedStaircaseID;
+        exports.SelectedRoomID = SelectedRoomID;
     }
 
-    function mapPaths() {
-        //path, itemID, parentIDs, edit
-        function map(path, spec) {
-            var exit = spec.exit || function () { };
-            Path.map(path).to(function () {
-                var item = find(that.Navigation, c.idIs(this.params[spec.id] || spec.id)) || spec.item;
-                var parentid = this.params[spec.parentIDs] || spec.parentIDs;
-                if (!parentid || (item.parentid === parentid) || (spec.parentIDs.some && spec.parentIDs.some(c.equals(item.parentid)))) {
-                    navigateToItem(item, spec.edit, spec.enter);
-                }
-            }).exit(exit);
+    function permission(item) {
+        //Display projector link because it can be used to log in.
+        if (item.id === "navigationTableEdit") {
+            return exports.authorization && exports.authorization.navigationEdit;
+        } else if (item.id === "allocationEdit") {
+            return exports.authorization && exports.authorization.allocationsEdit;
+        } else {
+            return true;
         }
-        function navigateToItem(item, edit, enter) {
-            if (item) {
-                if (module.exports.checkAuth(item) !== false) {
-                    if (item.parentid === "Root") {
-                        that.reloadNavigation(item.id);
-                    } else {
-                        that.reloadNavigation(item.parentid, item.id);
-                    }
-                    if (edit) {
-                        editMarkdown(item);
-                    } else {
-                        switch (item.type) {
-                            case "staircase":
-                                return loadStaircase(item);
-                            case "page":
-                                return staticPage(item);
-                            case "room":
-                                return loadRoom(item);
-                            case "special":
-                                return enter(item);
-                            default:
-                                return false;
-                        }
-                    }
-                }
-            } else {
-                return false;
+    }
+    var nav = exports.Navigation.filter(permission);
+
+    //Load Staircases
+    var Staircases = nav.filter(c.parentIs("Root"));
+    $("#staircases").html(template("NavigationList", { Links: Staircases }));
+
+    //Load Rooms
+    var Rooms = nav.filter(c.parentIs(exports.SelectedStaircaseID));
+    $("#rooms").html(template("NavigationList", { Links: Rooms }));
+}
+
+function mapPaths() {
+    //path, itemID, parentIDs, edit
+    function map(path, spec) {
+        var exit = spec.exit || function () { };
+        Path.map(path).to(function () {
+            var item = find(exports.Navigation, c.idIs(this.params[spec.id] || spec.id)) || spec.item;
+            var parentid = this.params[spec.parentIDs] || spec.parentIDs;
+            if (!parentid || (item.parentid === parentid) || (spec.parentIDs.some && spec.parentIDs.some(c.equals(item.parentid)))) {
+                navigateToItem(item, spec.edit, spec.enter);
             }
+        }).exit(exit);
+    }
+    function navigateToItem(item, edit, enter) {
+        if (item) {
+            if (exports.checkAuth(item) !== false) {
+                if (item.parentid === "Root") {
+                    exports.reloadNavigation(item.id);
+                } else {
+                    exports.reloadNavigation(item.parentid, item.id);
+                }
+                if (edit) {
+                    editMarkdown(item);
+                } else {
+                    switch (item.type) {
+                        case "staircase":
+                            return loadStaircase(item);
+                        case "page":
+                            return staticPage(item);
+                        case "room":
+                            return loadRoom(item);
+                        case "special":
+                            return enter(item);
+                        default:
+                            return false;
+                    }
+                }
+            }
+        } else {
+            return false;
         }
+    }
 
-        Path.map("#/projector/").to(projectorView.enter).exit(projectorView.exit);
+    Path.map("#/projector/").to(projectorView.enter).exit(projectorView.exit);
 
-        map("#/allocationEdit/", {
-            id: "allocationEdit",
-            enter: allocationEdit.enter,
-            exit: allocationEdit.exit
-        });
-        map("#/navigationTableEdit/", {
+    map("#/allocationEdit/", {
+        id: "allocationEdit",
+        enter: allocationEdit.enter,
+        exit: allocationEdit.exit
+    });
+    map("#/navigationTableEdit/", {
+        id: "navigationTableEdit",
+        enter: navigationTableEdit,
+        item: {//provide backup item
             id: "navigationTableEdit",
-            enter: navigationTableEdit,
-            item: {//provide backup item
-                id: "navigationTableEdit",
-                type: "special"
-            }
-        });
-        map("#//edit/", {
-            id: "",
-            parentIDs: "",
-            edit: true
-        });
-        map("#/:id/edit/", {
-            id: "id",
-            edit: true
-        });
-        map("#/", {
-            id: "",
-            parentIDs: ""
-        });
-        map("#/:sid/", {
-            id: "sid",
-            parentIDs: ["", "Root"]
-        });
-        map("#/:sid/:rid/", {
-            id: "rid",
-            parentIDs: "sid"
-        });
-    }
+            type: "special"
+        }
+    });
+    map("#//edit/", {
+        id: "",
+        parentIDs: "",
+        edit: true
+    });
+    map("#/:id/edit/", {
+        id: "id",
+        edit: true
+    });
+    map("#/", {
+        id: "",
+        parentIDs: ""
+    });
+    map("#/:sid/", {
+        id: "sid",
+        parentIDs: ["", "Root"]
+    });
+    map("#/:sid/:rid/", {
+        id: "rid",
+        parentIDs: "sid"
+    });
+}
 
-    function run() {
-        var isReady = false;
-        (function (ready) {
-            AJAX.navigation.read(function (data) {
-                /// <summary>Load all the navigationd ata up front then start the applicaion.</summary>
-                /// <param name="data" type="Array">The Navigation Data</param>
-                that.Navigation = data.map(model.navigationItem).sort(navigationItemOrder);
-                $(ready);
-            })
-        }(function () {
-            $("body").removeClass("loading").addClass("background");
-            $("#page").fadeIn();
-            Path.listen();
-            isReady = true;
-            $("#isThisYears").click(that.refreshAllocationsDisplay);
-        }));
-    }
+function run() {
+    var isReady = false;
+    (function (ready) {
+        AJAX.navigation.read(function (data) {
+            /// <summary>Load all the navigationd ata up front then start the applicaion.</summary>
+            /// <param name="data" type="Array">The Navigation Data</param>
+            exports.Navigation = data.map(model.navigationItem).sort(navigationItemOrder);
+            $(ready);
+        })
+    }(function () {
+        $("body").removeClass("loading").addClass("background");
+        $("#page").fadeIn();
+        Path.listen();
+        isReady = true;
+        $("#isThisYears").click(exports.refreshAllocationsDisplay);
+    }));
+}
 
-    Path.root("#/");
-    mapPaths();
-    run();
-
-
-    return that;
-}(jQuery));
+Path.root("#/");
+mapPaths();
+run();
 });
 require.register("rooms/model.js", function(module, exports, require){
 ﻿var app = require('./app');
@@ -764,6 +758,7 @@ require.register("rooms/views/staircase.js", function(module, exports, require){
 var app = require('../app');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
+var model = require('../model');
 
 module.exports = function (staircase) {
     "use strict";
@@ -799,6 +794,7 @@ require.register("rooms/views/projector.js", function(module, exports, require){
 var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
 
 var homeHTML;
 var selectRoom = function (room) {
@@ -820,7 +816,7 @@ var normalInterval = 5000;
 var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {
-        view.projector.exit();
+        exports.exit();
         Path.refresh();
     }
 });
@@ -847,7 +843,7 @@ exports.enter = function () {
                 $(".unavailable").fadeOut(2000);
             }
         });
-        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).groupBy(c.sameStaircase).map(selectStaircaseGroup).sort(o.navigationItemComparer);
+        var mappedStaircases = app.Navigation.filter(c.typeIs("room")).groupBy(c.sameStaircase).map(selectStaircaseGroup).sort(navigationItemOrder);
         $("#page").removeClass("page").addClass("projector");
         $("body").removeClass("background");
         $("#colmask").html(template("projector", { staircases: mappedStaircases }));
@@ -891,6 +887,7 @@ var loadMarkdown = require('../markdown/load-markdown');
 var toTable = require('../helpers/table');
 var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
 
 function validBathroom(n) {
     return !isNaN(Number(n)) && Number(n) >= 0;
@@ -961,7 +958,7 @@ function create(e) {
 
     if (validateSpec(spec, true)) {
         app.Navigation.push(model.navigationItem(spec));
-        app.Navigation = app.Navigation.sort(o.navigationItemComparer);
+        app.Navigation = app.Navigation.sort(navigationItemOrder);
         setStatus("Saving...");
         AJAX.navigation.create(spec, function (result) {
             setStatus("Saved", 2000);
@@ -1026,6 +1023,8 @@ var setStatus = require('../helpers/status-display').setStatus;
 var curry = require('curry');
 var find = require('find');
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
+var loadMarkdown = require('../markdown/load-markdown');
 
 var selectRoomAllocation = curry(function (allocations, room) {
     var allocation = allocations[room.id];
@@ -1051,13 +1050,13 @@ var oldItem;
 
 exports.enter = function (item) {
     isInAllocationEdit = true;
-    view.markdown.loadMarkdown(item, true);
+    loadMarkdown(item, true);
     $("#templated").html();
     stream.getAllocations(function (allocationsData) {
         var allocations = allocationsData.defaultAllocations();
         var year = allocations.year;
         var mappedStaircases = app.Navigation.filter(c.typeIs("room")).filter(c.not(c.isPermanentlyUnavailable))
-            .groupBy(c.sameStaircase).map(selectStaircaseGroup(allocations)).sort(o.navigationItemComparer);
+            .groupBy(c.sameStaircase).map(selectStaircaseGroup(allocations)).sort(navigationItemOrder);
         $("#templated")
             .html(template("allocationEdit", { staircases: mappedStaircases, year: year }))
             .find("form").submit(function (e) {

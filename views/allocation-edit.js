@@ -3,6 +3,8 @@ var setStatus = require('../helpers/status-display').setStatus;
 var curry = require('curry');
 var find = require('find');
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
+var loadMarkdown = require('../markdown/load-markdown');
 
 var selectRoomAllocation = curry(function (allocations, room) {
     var allocation = allocations[room.id];
@@ -28,13 +30,13 @@ var oldItem;
 
 exports.enter = function (item) {
     isInAllocationEdit = true;
-    view.markdown.loadMarkdown(item, true);
+    loadMarkdown(item, true);
     $("#templated").html();
     stream.getAllocations(function (allocationsData) {
         var allocations = allocationsData.defaultAllocations();
         var year = allocations.year;
         var mappedStaircases = app.Navigation.filter(c.typeIs("room")).filter(c.not(c.isPermanentlyUnavailable))
-            .groupBy(c.sameStaircase).map(selectStaircaseGroup(allocations)).sort(o.navigationItemComparer);
+            .groupBy(c.sameStaircase).map(selectStaircaseGroup(allocations)).sort(navigationItemOrder);
         $("#templated")
             .html(template("allocationEdit", { staircases: mappedStaircases, year: year }))
             .find("form").submit(function (e) {

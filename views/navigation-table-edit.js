@@ -4,6 +4,7 @@ var loadMarkdown = require('../markdown/load-markdown');
 var toTable = require('../helpers/table');
 var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
+var navigationItemOrder = require('../helpers/navigation-item-order');
 
 function validBathroom(n) {
     return !isNaN(Number(n)) && Number(n) >= 0;
@@ -74,7 +75,7 @@ function create(e) {
 
     if (validateSpec(spec, true)) {
         app.Navigation.push(model.navigationItem(spec));
-        app.Navigation = app.Navigation.sort(o.navigationItemComparer);
+        app.Navigation = app.Navigation.sort(navigationItemOrder);
         setStatus("Saving...");
         AJAX.navigation.create(spec, function (result) {
             setStatus("Saved", 2000);

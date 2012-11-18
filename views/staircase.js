@@ -1,6 +1,7 @@
 var app = require('../app');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
+var model = require('../model');
 
 module.exports = function (staircase) {
     "use strict";
