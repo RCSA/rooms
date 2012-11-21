@@ -1,12 +1,13 @@
-exports = false;
-require = null;
-//Markdown.converter
-var Markdown;
+//source: http://code.google.com/p/pagedown/
+//
+//This has been modified, some unused code has been removed,
+//other bits have been improved/tidied up.  Support for IE<7
+//has been removed.
 
-if (typeof exports === "object" && typeof require === "function") // we're in a CommonJS (e.g. Node.js) module
-    Markdown = exports;
-else
-    Markdown = {};
+var Markdown = {};
+
+
+//Markdown.converter
 
 //
 // Usage:
@@ -1304,17 +1305,9 @@ else
 
 //Markdown.sanitizer
 (function () {
-    var output, Converter;
-    if (typeof exports === "object" && typeof require === "function") { // we're in a CommonJS (e.g. Node.js) module
-        output = exports;
-        Converter = require("./Markdown.Converter").Converter;
-    } else {
-        output = Markdown;
-        Converter = output.Converter;
-    }
-        
-    output.getSanitizingConverter = function (converter) {
-        converter = converter || new Converter();
+
+    Markdown.getSanitizingConverter = function (converter) {
+        converter = converter || new Markdown.Converter();
         converter.hooks.chain("postConversion", sanitizeHtml);
         converter.hooks.chain("postConversion", balanceTags);
         return converter;
