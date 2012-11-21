@@ -1694,7 +1694,6 @@ module.exports = function (item) {
 }
 });
 require.register("rooms/markdown/converter.js", function(module, exports, require){
-var queue = require('queue');
 var Markdown = require('../libraries/pagedown.js');
 
 var converter = module.exports = Markdown.getSanitizingConverter();
@@ -1727,35 +1726,6 @@ converter.hooks.chain("postConversion", function (text) {
 converter.hooks.chain("postConversion", function (text) {
     return text.replace(/<\/h1>/g, "</h1><hr>");
 });
-//Allow a table
-(function () {
-    var tables = queue();
-    converter.hooks.chain("preConversion", function (text) {
-        function parseLine(line, tag) {
-            return "<tr><" + tag + ">" +
-                    line.replace(/^\||\|$/g, "").replace(/\|/g, "</" + tag + "><" + tag + ">")
-               + "</" + tag + "></tr>";
-        }
-
-        var result = text.replace(/(\r\n|\n|\r)/gm, "\n")
-    .replace(
-        /^([^\n]*\|[^\n]*)\n[\s-\|]*-[\s-\|]*$/gm,
-        function (a, line) {
-            return parseLine(line, "th");
-        })
-        .replace(/^(.*)\|(.*)$/gm, function (line) {
-            return parseLine(line, "td");
-        })
-    .replace(/^\n((?:<tr>[^\n]*\n)+)$/gm, function (u, table) {
-            tables.enqueue("<table>" + table + "</table>");
-            return "\n\n[table]\n\n";
-        });
-        return result;
-    });
-    converter.hooks.chain("postConversion", function (text) {
-        return text.replace(/<p>\[table\]<\/p>/gm, tables.dequeue);
-    });
-}());
 });
 require.register("rooms/helpers/table.js", function(module, exports, require){
 ﻿var $ = jQuery;
@@ -3241,8 +3211,8 @@ else
         Converter = output.Converter;
     }
         
-    output.getSanitizingConverter = function () {
-        var converter = new Converter();
+    output.getSanitizingConverter = function (converter) {
+        converter = converter || new Converter();
         converter.hooks.chain("postConversion", sanitizeHtml);
         converter.hooks.chain("postConversion", balanceTags);
         return converter;
@@ -3351,14 +3321,10 @@ else
         doc = window.document,
         re = window.RegExp,
         nav = window.navigator,
-        SETTINGS = { lineLength: 72 },
+        SETTINGS = { lineLength: 72 };
 
     // Used to work around some browser bugs where we can't use feature testing.
-        uaSniffed = {
-            isIE: /msie/.test(nav.userAgent.toLowerCase()),
-            isIE_5or6: /msie 6/.test(nav.userAgent.toLowerCase()) || /msie 5/.test(nav.userAgent.toLowerCase()),
-            isOpera: /opera/.test(nav.userAgent.toLowerCase())
-        };
+    var isIE = /msie/.test(nav.userAgent.toLowerCase());
 
     var defaultsStrings = {
         bold: "Strong <strong> Ctrl+B",
@@ -3436,9 +3402,6 @@ else
         
         options = options || {};
 
-        if (typeof options.handler === "function") { //backwards compatible behavior
-            options = { helpButton: options };
-        }
         options.strings = options.strings || {};
         if (options.helpButton) {
             options.strings.help = options.strings.help || options.helpButton.title;
@@ -3810,7 +3773,7 @@ else
                 }
             }
 
-            if (!uaSniffed.isIE || mode != "moving") {
+            if (!isIE || mode != "moving") {
                 timer = setTimeout(refreshState, 1);
             }
             else {
@@ -3993,7 +3956,7 @@ else
             });
 
             var handlePaste = function () {
-                if (uaSniffed.isIE || (inputStateObj && inputStateObj.text != panels.input.value)) {
+                if (isIE || (inputStateObj && inputStateObj.text != panels.input.value)) {
                     if (timer == undefined) {
                         mode = "paste";
                         saveState();
@@ -4054,7 +4017,7 @@ else
                 return;
             }
 
-            if (inputArea.selectionStart !== undefined && !uaSniffed.isOpera) {
+            if (inputArea.selectionStart !== undefined) {
 
                 inputArea.focus();
                 inputArea.selectionStart = stateObj.start;
@@ -4335,7 +4298,7 @@ else
 
             var fullTop = position.getTop(panels.input) - getDocScrollTop();
 
-            if (uaSniffed.isIE) {
+            if (isIE) {
                 setTimeout(function () {
                     window.scrollBy(0, fullTop - emptyTop);
                 }, 0);
@@ -4374,7 +4337,7 @@ else
 
         style.zIndex = "1000";
 
-        if (uaSniffed.isIE) {
+        if (isIE) {
             style.filter = "alpha(opacity=50)";
         }
         else {
@@ -4384,7 +4347,7 @@ else
         var pageSize = position.getPageSize();
         style.height = pageSize[1] + "px";
 
-        if (uaSniffed.isIE) {
+        if (isIE) {
             style.left = doc.documentElement.scrollLeft;
             style.width = doc.documentElement.clientWidth;
         }
@@ -4518,11 +4481,6 @@ else
             dialog.style.top = "50%";
             dialog.style.left = "50%";
             dialog.style.display = "block";
-            if (uaSniffed.isIE_5or6) {
-                dialog.style.position = "absolute";
-                dialog.style.top = doc.documentElement.scrollTop + 200 + "px";
-                dialog.style.left = "50%";
-            }
             doc.body.appendChild(dialog);
 
             // This has to be done AFTER adding the dialog to the form if you
@@ -4562,12 +4520,7 @@ else
 
         makeSpritedButtonRow();
 
-        var keyEvent = "keydown";
-        if (uaSniffed.isOpera) {
-            keyEvent = "keypress";
-        }
-
-        util.addEvent(inputBox, keyEvent, function (key) {
+        util.addEvent(inputBox, 'keydown', function (key) {
 
             // Check to see if we have a button key and, if so execute the callback.
             if ((key.ctrlKey || key.metaKey) && !key.altKey && !key.shiftKey) {
@@ -4646,7 +4599,7 @@ else
         });
 
         // special handler because IE clears the context of the textbox on ESC
-        if (uaSniffed.isIE) {
+        if (isIE) {
             util.addEvent(inputBox, "keydown", function (key) {
                 var code = key.keyCode;
                 if (code === 27) {
@@ -4675,23 +4628,6 @@ else
 
                 var chunks = state.getChunks();
 
-                // Some commands launch a "modal" prompt dialog.  Javascript
-                // can't really make a modal dialog box and the WMD code
-                // will continue to execute while the dialog is displayed.
-                // This prevents the dialog pattern I'm used to and means
-                // I can't do something like this:
-                //
-                // var link = CreateLinkDialog();
-                // makeMarkdownLink(link);
-                //
-                // Instead of this straightforward method of handling a
-                // dialog I have to pass any code which would execute
-                // after the dialog is dismissed (e.g. link creation)
-                // in a function parameter.
-                //
-                // Yes this is awkward and I think it sucks, but there's
-                // no real workaround.  Only the image and link code
-                // create dialogs and require the function pointers.
                 var fixupInputArea = function () {
 
                     inputBox.focus();
@@ -4736,7 +4672,7 @@ else
                 // IE tries to select the background image "button" text (it's
                 // implemented in a list item) so we have to cache the selection
                 // on mousedown.
-                if (uaSniffed.isIE) {
+                if (isIE) {
                     button.onmousedown = function () {
                         if (doc.activeElement && doc.activeElement !== panels.input) { // we're not even in the input box, so there's no selection
                             return;
@@ -5550,8 +5486,6 @@ else
         chunk.selection = "";
         chunk.skipLines(2, 1, true);
     }
-
-
 })();
 
 

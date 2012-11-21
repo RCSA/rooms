@@ -1,4 +1,3 @@
-var queue = require('queue');
 var Markdown = require('../libraries/pagedown.js');
 
 var converter = module.exports = Markdown.getSanitizingConverter();
@@ -31,32 +30,3 @@ converter.hooks.chain("postConversion", function (text) {
 converter.hooks.chain("postConversion", function (text) {
     return text.replace(/<\/h1>/g, "</h1><hr>");
 });
-//Allow a table
-(function () {
-    var tables = queue();
-    converter.hooks.chain("preConversion", function (text) {
-        function parseLine(line, tag) {
-            return "<tr><" + tag + ">" +
-                    line.replace(/^\||\|$/g, "").replace(/\|/g, "</" + tag + "><" + tag + ">")
-               + "</" + tag + "></tr>";
-        }
-
-        var result = text.replace(/(\r\n|\n|\r)/gm, "\n")
-    .replace(
-        /^([^\n]*\|[^\n]*)\n[\s-\|]*-[\s-\|]*$/gm,
-        function (a, line) {
-            return parseLine(line, "th");
-        })
-        .replace(/^(.*)\|(.*)$/gm, function (line) {
-            return parseLine(line, "td");
-        })
-    .replace(/^\n((?:<tr>[^\n]*\n)+)$/gm, function (u, table) {
-            tables.enqueue("<table>" + table + "</table>");
-            return "\n\n[table]\n\n";
-        });
-        return result;
-    });
-    converter.hooks.chain("postConversion", function (text) {
-        return text.replace(/<p>\[table\]<\/p>/gm, tables.dequeue);
-    });
-}());
