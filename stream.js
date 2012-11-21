@@ -5,13 +5,9 @@ module.exports = (function () {
 
     var emitter = new Emitter();
 
-    var subscribeRaw = (function () {
-        var subscriptions = [];
+    (function () {
         function notify(data) {
-            var i;
-            for (i = 0; i < subscriptions.length; i++) {
-                subscriptions[i](data);
-            }
+            emitter.emit('raw', data);
         }
 
 
@@ -114,19 +110,9 @@ module.exports = (function () {
             callNext();
         } ());
 
-        return function (subscription) {
-            subscriptions.push(subscription);
-            return function () {
-                /// <summary>Unsubscribe</summary>
-                subscriptions = subscriptions.filter(function (s) { return s != subscription; });
-            };
-        };
     } ());
 
     var state = {};
-    subscribeRaw(function (data) {
-        emitter.emit('raw', data);
-    });
 
     function allocationYear(defaultText, yearModifier) {
         return Object.create({

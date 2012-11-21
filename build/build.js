@@ -5477,25 +5477,28 @@ require.register("rooms/libraries/path.js", function(module, exports, require){
 
 //version 0.8.4
 
+var current, root, rescue, previous;
+var defined = {};
+
 var Path = {
     map: function (path) {
-        if (Path.routes.defined.hasOwnProperty(path)) {
-            return Path.routes.defined[path];
+        if (defined.hasOwnProperty(path)) {
+            return defined[path];
         } else {
-            return new Path.core.route(path);
+            return new Route(path);
         }
     },
     root: function (path) {
-        Path.routes.root = path;
+        root = path;
     },
     rescue: function (fn) {
-        Path.routes.rescue = fn;
+        rescue = fn;
     },
     match: function (path, parameterize) {
         var params = {}, route = null, possible_routes, slice, i, j, compare;
-        for (route in Path.routes.defined) {
+        for (route in defined) {
             if (route !== null && route !== undefined) {
-                route = Path.routes.defined[route];
+                route = defined[route];
                 possible_routes = route.partition();
                 for (j = 0; j < possible_routes.length; j++) {
                     slice = possible_routes[j];
@@ -5521,13 +5524,13 @@ var Path = {
     },
     dispatch: function (passed_route) {
         var previous_route, matched_route;
-        if (Path.routes.current !== passed_route) {
-            Path.routes.previous = Path.routes.current;
-            Path.routes.current = passed_route;
+        if (current !== passed_route) {
+            previous = current;
+            current = passed_route;
             matched_route = Path.match(passed_route, true);
 
-            if (Path.routes.previous) {
-                previous_route = Path.match(Path.routes.previous);
+            if (previous) {
+                previous_route = Path.match(previous);
                 if (previous_route !== null && previous_route.do_exit !== null) {
                     previous_route.do_exit();
                 }
@@ -5537,8 +5540,8 @@ var Path = {
                 matched_route.run();
                 return true;
             } else {
-                if (Path.routes.rescue !== null) {
-                    Path.routes.rescue();
+                if (rescue !== null) {
+                    rescue();
                 }
             }
         }
@@ -5547,8 +5550,8 @@ var Path = {
         var fn = function(){ Path.dispatch(location.hash); }
 
         if (location.hash === "") {
-            if (Path.routes.root !== null) {
-                location.hash = Path.routes.root;
+            if (root !== null) {
+                location.hash = root;
             }
         }
 
@@ -5557,26 +5560,18 @@ var Path = {
         if(location.hash !== "") {
             Path.dispatch(location.hash);
         }
-    },
-    core: {
-        route: function (path) {
-            this.path = path;
-            this.action = null;
-            this.do_enter = [];
-            this.do_exit = null;
-            this.params = {};
-            Path.routes.defined[path] = this;
-        }
-    },
-    routes: {
-        current: null,
-        root: null,
-        rescue: null,
-        previous: null,
-        defined: {}
     }
 };
-Path.core.route.prototype = {
+
+function Route(path) {
+    this.path = path;
+    this.action = null;
+    this.do_enter = [];
+    this.do_exit = null;
+    this.params = {};
+    defined[path] = this;
+}
+Route.prototype = {
     to: function (fn) {
         this.action = fn;
         return this;
@@ -5607,10 +5602,10 @@ Path.core.route.prototype = {
     run: function () {
         var halt_execution = false, i, result;
 
-        if (Path.routes.defined[this.path].hasOwnProperty("do_enter")) {
-            if (Path.routes.defined[this.path].do_enter.length > 0) {
-                for (i = 0; i < Path.routes.defined[this.path].do_enter.length; i++) {
-                    result = Path.routes.defined[this.path].do_enter[i].apply(this, null);
+        if (defined[this.path].hasOwnProperty("do_enter")) {
+            if (defined[this.path].do_enter.length > 0) {
+                for (i = 0; i < defined[this.path].do_enter.length; i++) {
+                    result = defined[this.path].do_enter[i].apply(this, null);
                     if (result === false) {
                         halt_execution = true;
                         break;
@@ -5619,7 +5614,7 @@ Path.core.route.prototype = {
             }
         }
         if (!halt_execution) {
-            Path.routes.defined[this.path].action();
+            defined[this.path].action();
         }
     }
 };
@@ -5733,13 +5728,9 @@ module.exports = (function () {
 
     var emitter = new Emitter();
 
-    var subscribeRaw = (function () {
-        var subscriptions = [];
+    (function () {
         function notify(data) {
-            var i;
-            for (i = 0; i < subscriptions.length; i++) {
-                subscriptions[i](data);
-            }
+            emitter.emit('raw', data);
         }
 
 
@@ -5842,19 +5833,9 @@ module.exports = (function () {
             callNext();
         } ());
 
-        return function (subscription) {
-            subscriptions.push(subscription);
-            return function () {
-                /// <summary>Unsubscribe</summary>
-                subscriptions = subscriptions.filter(function (s) { return s != subscription; });
-            };
-        };
     } ());
 
     var state = {};
-    subscribeRaw(function (data) {
-        emitter.emit('raw', data);
-    });
 
     function allocationYear(defaultText, yearModifier) {
         return Object.create({
