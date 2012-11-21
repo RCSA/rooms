@@ -1,3 +1,152 @@
-var Path = { version: "0.8", map: function (a) { if (Path.routes.defined.hasOwnProperty(a)) { return Path.routes.defined[a] } else { return new Path.core.route(a) } }, root: function (a) { Path.routes.root = a }, rescue: function (a) { Path.routes.rescue = a }, history: { pushState: function (a, c, b) { if (Path.history.supported) { if (Path.dispatch(b)) { history.pushState(a, c, b) } } else { if (Path.history.fallback) { window.location.hash = "#" + b } } }, popState: function (a) { Path.dispatch(document.location.pathname) }, listen: function (a) { Path.history.supported = !!(window.history && window.history.pushState); Path.history.fallback = a; if (Path.history.supported) { window.onpopstate = Path.history.popState } else { if (Path.history.fallback) { for (route in Path.routes.defined) { if (route.charAt(0) != "#") { Path.routes.defined["#" + route] = Path.routes.defined[route]; Path.routes.defined["#" + route].path = "#" + route } } Path.listen() } } } }, match: function (k, h) { var b = {}, g = null, e, f, d, c, a; for (g in Path.routes.defined) { if (g !== null && g !== undefined) { g = Path.routes.defined[g]; e = g.partition(); for (c = 0; c < e.length; c++) { f = e[c]; a = k; if (f.search(/:/) > 0) { for (d = 0; d < f.split("/").length; d++) { if ((d < a.split("/").length) && (f.split("/")[d].charAt(0) === ":")) { b[f.split("/")[d].replace(/:/, "")] = a.split("/")[d]; a = a.replace(a.split("/")[d], f.split("/")[d]) } } } if (f === a) { if (h) { g.params = b } return g } } } } return null }, dispatch: function (a) { var b, c; if (Path.routes.current !== a) { Path.routes.previous = Path.routes.current; Path.routes.current = a; c = Path.match(a, true); if (Path.routes.previous) { b = Path.match(Path.routes.previous); if (b !== null && b.do_exit !== null) { b.do_exit() } } if (c !== null) { c.run(); return true } else { if (Path.routes.rescue !== null) { Path.routes.rescue() } } } }, listen: function () { var a = function () { Path.dispatch(location.hash) }; if (location.hash === "") { if (Path.routes.root !== null) { location.hash = Path.routes.root } } else { Path.dispatch(location.hash) } if ("onhashchange" in window) { window.onhashchange = a } else { setInterval(a, 50) } }, core: { route: function (a) { this.path = a; this.action = null; this.do_enter = []; this.do_exit = null; this.params = {}; Path.routes.defined[a] = this } }, routes: { current: null, root: null, rescue: null, previous: null, defined: {}} }; Path.core.route.prototype = { to: function (a) { this.action = a; return this }, enter: function (a) { if (a instanceof Array) { this.do_enter = this.do_enter.concat(a) } else { this.do_enter.push(a) } return this }, exit: function (a) { this.do_exit = a; return this }, partition: function () { var d = [], a = [], c = /\(([^}]+?)\)/g, e, b; while (e = c.exec(this.path)) { d.push(e[1]) } a.push(this.path.split("(")[0]); for (b = 0; b < d.length; b++) { a.push(a[a.length - 1] + d[b]) } return a }, run: function () { var b = false, c, a, d; if (Path.routes.defined[this.path].hasOwnProperty("do_enter")) { if (Path.routes.defined[this.path].do_enter.length > 0) { for (c = 0; c < Path.routes.defined[this.path].do_enter.length; c++) { a = Path.routes.defined[this.path].do_enter[c](); if (a === false) { b = true; break } } } } if (!b) { Path.routes.defined[this.path].action() } } };
+//source: https://github.com/mtrpcic/pathjs
+
+//version 0.8.4
+
+var Path = {
+    map: function (path) {
+        if (Path.routes.defined.hasOwnProperty(path)) {
+            return Path.routes.defined[path];
+        } else {
+            return new Path.core.route(path);
+        }
+    },
+    root: function (path) {
+        Path.routes.root = path;
+    },
+    rescue: function (fn) {
+        Path.routes.rescue = fn;
+    },
+    match: function (path, parameterize) {
+        var params = {}, route = null, possible_routes, slice, i, j, compare;
+        for (route in Path.routes.defined) {
+            if (route !== null && route !== undefined) {
+                route = Path.routes.defined[route];
+                possible_routes = route.partition();
+                for (j = 0; j < possible_routes.length; j++) {
+                    slice = possible_routes[j];
+                    compare = path;
+                    if (slice.search(/:/) > 0) {
+                        for (i = 0; i < slice.split("/").length; i++) {
+                            if ((i < compare.split("/").length) && (slice.split("/")[i].charAt(0) === ":")) {
+                                params[slice.split('/')[i].replace(/:/, '')] = compare.split("/")[i];
+                                compare = compare.replace(compare.split("/")[i], slice.split("/")[i]);
+                            }
+                        }
+                    }
+                    if (slice === compare) {
+                        if (parameterize) {
+                            route.params = params;
+                        }
+                        return route;
+                    }
+                }
+            }
+        }
+        return null;
+    },
+    dispatch: function (passed_route) {
+        var previous_route, matched_route;
+        if (Path.routes.current !== passed_route) {
+            Path.routes.previous = Path.routes.current;
+            Path.routes.current = passed_route;
+            matched_route = Path.match(passed_route, true);
+
+            if (Path.routes.previous) {
+                previous_route = Path.match(Path.routes.previous);
+                if (previous_route !== null && previous_route.do_exit !== null) {
+                    previous_route.do_exit();
+                }
+            }
+
+            if (matched_route !== null) {
+                matched_route.run();
+                return true;
+            } else {
+                if (Path.routes.rescue !== null) {
+                    Path.routes.rescue();
+                }
+            }
+        }
+    },
+    listen: function () {
+        var fn = function(){ Path.dispatch(location.hash); }
+
+        if (location.hash === "") {
+            if (Path.routes.root !== null) {
+                location.hash = Path.routes.root;
+            }
+        }
+
+        window.onhashchange = fn;
+
+        if(location.hash !== "") {
+            Path.dispatch(location.hash);
+        }
+    },
+    core: {
+        route: function (path) {
+            this.path = path;
+            this.action = null;
+            this.do_enter = [];
+            this.do_exit = null;
+            this.params = {};
+            Path.routes.defined[path] = this;
+        }
+    },
+    routes: {
+        current: null,
+        root: null,
+        rescue: null,
+        previous: null,
+        defined: {}
+    }
+};
+Path.core.route.prototype = {
+    to: function (fn) {
+        this.action = fn;
+        return this;
+    },
+    enter: function (fns) {
+        if (fns instanceof Array) {
+            this.do_enter = this.do_enter.concat(fns);
+        } else {
+            this.do_enter.push(fns);
+        }
+        return this;
+    },
+    exit: function (fn) {
+        this.do_exit = fn;
+        return this;
+    },
+    partition: function () {
+        var parts = [], options = [], re = /\(([^}]+?)\)/g, text, i;
+        while (text = re.exec(this.path)) {
+            parts.push(text[1]);
+        }
+        options.push(this.path.split("(")[0]);
+        for (i = 0; i < parts.length; i++) {
+            options.push(options[options.length - 1] + parts[i]);
+        }
+        return options;
+    },
+    run: function () {
+        var halt_execution = false, i, result;
+
+        if (Path.routes.defined[this.path].hasOwnProperty("do_enter")) {
+            if (Path.routes.defined[this.path].do_enter.length > 0) {
+                for (i = 0; i < Path.routes.defined[this.path].do_enter.length; i++) {
+                    result = Path.routes.defined[this.path].do_enter[i].apply(this, null);
+                    if (result === false) {
+                        halt_execution = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!halt_execution) {
+            Path.routes.defined[this.path].action();
+        }
+    }
+};
 
 module.exports = Path;
