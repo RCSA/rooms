@@ -79,7 +79,7 @@ function create(e) {
         app.Navigation.push(model.navigationItem(spec));
         app.Navigation = app.Navigation.sort(navigationItemOrder);
         setStatus("Saving...");
-        server.navigation.create(spec, function (result) {
+        server.navigation.create(spec, function () {
             setStatus("Saved", 2000);
         });
         view.navigationTableEdit(model.navigationItem(spec));
@@ -98,7 +98,7 @@ function update(id, name, value) {
             cascadeIDChange(id, value);
         }
         setStatus("Saving...");
-        server.navigation.update(id, name, value, function (result) {
+        server.navigation.update(id, name, value, function () {
             setStatus("Saved", 2000);
         });
     } else {
@@ -120,7 +120,7 @@ module.exports = function (item) {
     $("#templated")
         .html(template("navigationTableEdit", model))
         .find("form").submit(create);
-    toTable('#templated');
+    toTable('#templated', update);
     $("#templated button").click(function (e) {
         if (confirm("Are you sure you want to delete?")) {
             var id = $(e.target).parents("tr").attr("itemid");
@@ -128,7 +128,7 @@ module.exports = function (item) {
             app.Navigation.splice(index, 1);
             view.navigationTableEdit();
             setStatus("Deleting...");
-            server.navigation.del(id, function (result) {
+            server.navigation.del(id, function () {
                 setStatus("Deleted", 2000);
             });
         }

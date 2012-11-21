@@ -5,15 +5,15 @@ var groupBy = require('group-by');
 var condition = require('to-bool-function');
 
 module.exports = function (staircase) {
-    /// <summary>Loads and displays a staircase.  It will load markdown and structured data separately.</summary>
-    /// <param name="SelectedStaircaseID" type="String">The ID of the staircase to display.</param>
-
     loadMarkdown(staircase);
 
-    var rooms = app.Navigation.filter(condition('parentid', staircase.id)).filter(condition('type', 'room'));
+    var rooms = app.Navigation
+      .filter(condition('parentid', staircase.id))
+      .filter(condition('type', 'room'));
+
     var floors = toFloorsArray(groupBy(rooms, 'floor'));
 
-    $("#templated").html(template("staircase", { Floors: floors }));
+    document.getElementById('templated').innerHTML = template('staircase', { Floors: floors });
 
     app.refreshAllocationsDisplay();
 }

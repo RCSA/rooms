@@ -20,7 +20,6 @@ var $ = jQuery;
 exports.SelectedStaircaseID = '';
 exports.SelectedRoomID = '';
 exports.Navigation = [];
-exports.RentBands = [];
 exports.authorization = false;
 
 
@@ -51,9 +50,9 @@ $(function () {
     stream.on('allocations', refreshAllocationsDisplay);
     exports.refreshAllocationsDisplay = tryRefreshAllocationsDisplay;
 });
+
 //Authentication
 $(function () {
-    var currentAuth = false;
     var currentItem;
     function tryCheckAuth(item) {
         currentItem = item;
@@ -202,24 +201,16 @@ function mapPaths() {
     });
 }
 
-function run() {
-    var isReady = false;
-    (function (ready) {
-        server.navigation.read(function (data) {
-            /// <summary>Load all the navigationd ata up front then start the applicaion.</summary>
-            /// <param name="data" type="Array">The Navigation Data</param>
-            exports.Navigation = data.map(model.navigationItem).sort(navigationItemOrder);
-            $(ready);
-        })
-    }(function () {
+Path.root("#/");
+mapPaths();
+
+//Load all the navigation data up front then start the applicaion.
+server.navigation.read(function (data) {
+    exports.Navigation = data.map(model.navigationItem).sort(navigationItemOrder);
+    $(function () {
         $("body").removeClass("loading").addClass("background");
         $("#page").fadeIn();
         Path.listen();
-        isReady = true;
         $("#isThisYears").click(exports.refreshAllocationsDisplay);
-    }));
-}
-
-Path.root("#/");
-mapPaths();
-run();
+    });
+});

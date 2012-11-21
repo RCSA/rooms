@@ -1,6 +1,6 @@
 ﻿var $ = jQuery;
 module.exports = makeTable;
-function makeTable(selector) {
+function makeTable(selector, callback) {
     $(selector).find("td").each(function () {
         var self = $(this);
 

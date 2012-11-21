@@ -118,7 +118,7 @@ module.exports = (function () {
             subscriptions.push(subscription);
             return function () {
                 /// <summary>Unsubscribe</summary>
-                subscriptions = subscriptions.filter(function (s) { s != subscription; });
+                subscriptions = subscriptions.filter(function (s) { return s != subscription; });
             };
         };
     } ());
@@ -127,13 +127,7 @@ module.exports = (function () {
     subscribeRaw(function (data) {
         emitter.emit('raw', data);
     });
-    function notFalse(a) {
-        return !!a;
-    }
 
-    function allocationsChanged(streamResult) {
-        return streamResult.allocations !== undefined;
-    }
     function allocationYear(defaultText, yearModifier) {
         return Object.create({
             year: (function () {
@@ -188,9 +182,6 @@ module.exports = (function () {
             }
         }
         return { allocations: currentAllocations };
-    }
-    function filterAllocationsArray(allocation) {
-        return allocations.defaultAllocations().year === parseInt(allocation.year, 10);
     }
     emitter.on('raw', function (raw) {
         if (raw.auth) {

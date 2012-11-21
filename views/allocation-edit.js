@@ -27,19 +27,13 @@ function selectStaircaseGroups(allocations, staircaseGroups) {
             return staircase;
         });
 }
-var selectStaircaseGroup = curry(function (allocations, roomsInStaircase) {
-    var staircaseID = roomsInStaircase[0].parentid;
-    var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
-    staircase.rooms = roomsInStaircase.map(selectRoomAllocation(allocations));
-    return staircase;
-});
+
 var isInAllocationEdit = false;
 $("#isThisYears").click(function () {
     if (isInAllocationEdit) {
         refresh();
     }
 });
-var oldItem;
 
 exports.enter = function (item) {
     isInAllocationEdit = true;
@@ -75,7 +69,6 @@ exports.enter = function (item) {
         var roomid = allocation.roomid;
         $('form[data-roomid="' + roomid + '"] input').val(allocation.crsid);
     });
-    app.reloadNavigation("", "allocationEdit");
 };
 exports.exit = function () {
     isInAllocationEdit = false;

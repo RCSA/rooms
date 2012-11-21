@@ -20,7 +20,6 @@ function selectStaircaseGroups(staircaseGroups) {
             return staircase;
         });
 }
-var normalInterval = 5000;
 var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {

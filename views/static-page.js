@@ -3,5 +3,5 @@
 module.exports = staticPage;
 function staticPage(item) {
     loadMarkdown(item, true);
-    $("#templated").html("");
+    document.getElementById('templated').innerHTML = '';
 }

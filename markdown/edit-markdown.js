@@ -64,7 +64,7 @@ function createEditor() {
             } else {
                 dialogs.showBusy();
                 upload(data.find("input")[0].files[0])
-                    .then(function (result) {
+                    .done(function (result) {
                         dialogs.hideBusy();
                         callback(result.links.original);
                     }, function (reason) {
@@ -95,7 +95,7 @@ module.exports = function (item) {
             var content = form.content.value;
             if (content !== md) {
                 setStatus("Saving description");
-                server.markdown.update(item.id, content, function (result) {
+                server.markdown.update(item.id, content, function () {
                     history.go(-1);
                     setStatus("Description saved", 2000);
                 });
