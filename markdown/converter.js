@@ -1,10 +1,6 @@
 var Markdown = require('../libraries/pagedown.js');
 
 var converter = module.exports = Markdown.getSanitizingConverter();
-//Remove http from links display text
-converter.hooks.chain("plainLinkText", function (url) {
-    return url.replace(/^https?:\/\//, "");
-});
 //suport using #bang urls
 converter.hooks.chain("preConversion", function (text) {
     return text.replace(/\(#(.*)\)/g, "(http://hashurl.com/$1)")
