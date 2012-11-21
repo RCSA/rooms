@@ -1,4 +1,4 @@
-var app = require('../app');
+var app = require('../');
 var converter = require('./converter');
 var server = require('../server');
 

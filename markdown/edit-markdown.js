@@ -1,40 +1,14 @@
-var app = require('../app');
+var app = require('../');
 var converter = require('./converter');
 var setStatus = require('../helpers/status-display').setStatus;
 var Markdown = require('../libraries/pagedown.js');
 var template = require('../template');
 var server = require('../server');
 
+var imgur = require('imgur');
 var imgurAPIKey = "e0b484465d77858ebaf6b3c7c1732909";
-function upload(file, callback) {
+var upload = imgur(imgurAPIKey).upload;
 
-    // file is from a <input> tag or from Drag'n Drop
-    // Is the file an image?
-
-    if (!file || !file.type.match(/image.*/)) return;
-
-    // It is!
-    // Let's build a FormData object
-
-    var fd = new FormData();
-    fd.append("image", file); // Append the file
-    fd.append("key", imgurAPIKey);
-    // Get your own key: http://api.imgur.com/
-
-    // Create the XHR (Cross-Domain XHR FTW!!!)
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://api.imgur.com/2/upload.json"); // Boooom!
-    xhr.onload = function () {
-        // Big win!
-        // The URL of the image is:
-        var links = JSON.parse(xhr.responseText).upload.links;
-        //{delete_page, imgur_page, large_thumbnail, original, small_square};
-        callback(links.original);
-    }
-    // Ok, I don't handle the errors. An exercice for the reader.
-    // And now, we send the formdata
-    xhr.send(fd);
-}
 function createDialogs() {
     $(".dialog").dialog({
         autoOpen: false
@@ -88,16 +62,22 @@ function createEditor() {
             if (data === false) {
                 callback(null);
             } else {
-                var files = data.find("input")[0].files; // FileList object
-                if (files.length !== 1) {
-                    callback(null);
-                } else {
-                    dialogs.showBusy();
-                    upload(files[0], function (url) {
+                dialogs.showBusy();
+                upload(data.find("input")[0].files[0])
+                    .then(function (result) {
                         dialogs.hideBusy();
-                        callback(url);
+                        callback(result.links.original);
+                    }, function (reason) {
+                        dialogs.hideBusy();
+                        callback(null);
+                        if (reason.code === 'InvalidFileType') {
+                            alert('The file you provided was not a valid image.');
+                        } else  if (reason.code === 'MissingFile') {
+                            alert('You didn\'t provide an image to upload');
+                        } else {
+                            throw reason;
+                        }
                     });
-                }
             }
         });
         return true; // tell the editor that we'll take care of getting the image url

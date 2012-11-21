@@ -1,4 +1,4 @@
-﻿var app = require('../app');
+﻿var app = require('../');
 var setStatus = require('../helpers/status-display').setStatus;
 var curry = require('curry');
 var find = require('find');
@@ -9,6 +9,7 @@ var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var server = require('../server');
 var stream = require('../stream');
+var condition = require('to-bool-function');
 
 var selectRoomAllocation = curry(function (allocations, room) {
     var allocation = allocations[room.id];
@@ -21,14 +22,14 @@ var selectRoomAllocation = curry(function (allocations, room) {
 function selectStaircaseGroups(allocations, staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
             staircase.rooms = staircaseGroups[staircaseID].map(selectRoomAllocation(allocations));
             return staircase;
         });
 }
 var selectStaircaseGroup = curry(function (allocations, roomsInStaircase) {
     var staircaseID = roomsInStaircase[0].parentid;
-    var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+    var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
     staircase.rooms = roomsInStaircase.map(selectRoomAllocation(allocations));
     return staircase;
 });
@@ -48,7 +49,7 @@ exports.enter = function (item) {
         var allocations = allocationsData.defaultAllocations();
         var year = allocations.year;
         var mappedStaircases = selectStaircaseGroups(allocations, groupBy(app.Navigation
-            .filter(c.typeIs("room"))
+            .filter(condition('type', "room"))
             .filter(function (room) { return room.rentband !== 0; }),
             'parentid'))
             .sort(navigationItemOrder);

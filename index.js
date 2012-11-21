@@ -14,6 +14,7 @@ var template = require('./template');
 var Path = require('./libraries/path');
 var server = require('./server');
 var stream = require('./stream');
+var condition = require('to-bool-function');
 
 var $ = jQuery;
 exports.SelectedStaircaseID = '';
@@ -111,11 +112,11 @@ exports.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
     var nav = exports.Navigation.filter(permission);
 
     //Load Staircases
-    var Staircases = nav.filter(c.parentIs("Root"));
+    var Staircases = nav.filter(condition('parentid', 'Root'));
     $("#staircases").html(template("NavigationList", { Links: Staircases }));
 
     //Load Rooms
-    var Rooms = nav.filter(c.parentIs(exports.SelectedStaircaseID));
+    var Rooms = nav.filter(condition('parentid', exports.SelectedStaircaseID));
     $("#rooms").html(template("NavigationList", { Links: Rooms }));
 }
 
@@ -124,7 +125,8 @@ function mapPaths() {
     function map(path, spec) {
         var exit = spec.exit || function () { };
         Path.map(path).to(function () {
-            var item = find(exports.Navigation, c.idIs(this.params[spec.id] || spec.id)) || spec.item;
+            var item = find(exports.Navigation, condition('id', this.params[spec.id] || spec.id))
+             || spec.item;
             var parentid = this.params[spec.parentIDs] || spec.parentIDs;
             if (!parentid || (item.parentid === parentid) || 
                 (spec.parentIDs.some && spec.parentIDs.some(function (id) { return id == item.parentid; }))) {

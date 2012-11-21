@@ -1,4 +1,4 @@
-﻿var app = require('../app');
+﻿var app = require('../');
 var model = require('../model');
 var loadMarkdown = require('../markdown/load-markdown');
 var toTable = require('../helpers/table');
@@ -6,6 +6,7 @@ var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var server = require('../server');
+var condition = require('to-bool-function');
 
 function validBathroom(n) {
     return !isNaN(Number(n)) && Number(n) >= 0;
@@ -22,11 +23,11 @@ function validationError(message) {
     return false;
 }
 function validateSpec(spec, idChange) {
-    if (idChange && app.Navigation.some(c.idIs(spec.id))) {
+    if (idChange && app.Navigation.some(condition('id', spec.id))) {
         return validationError("There is already an item with this ID");
     } else if (spec.id === spec.parentid) {
         return validationError("An item can't be its own parent");
-    } else if (spec.parentid !== "Root" && !app.Navigation.some(c.idIs(spec.parentid))) {
+    } else if (spec.parentid !== "Root" && !app.Navigation.some(condition('id', spec.parentid))) {
         return validationError('The parent ID must either be the ID of an existing item or "Root"');
     }
 
@@ -51,7 +52,7 @@ function validateSpec(spec, idChange) {
     return true;
 }
 function cascadeIDChange(oldID, newID) {
-    var children = app.Navigation.filter(c.parentIs(oldID));
+    var children = app.Navigation.filter(condition('parentid', oldID));
     for (var i = 0; i < children.length; i++) {
         children[i].parentid = newID;
     }
@@ -86,7 +87,7 @@ function create(e) {
     return false;
 }
 function update(id, name, value) {
-    var item = app.Navigation.filter(c.idIs(id))[0];
+    var item = app.Navigation.filter(condition('id', id))[0];
     var spec = Object.create(item);
     spec[name] = value;
 
@@ -123,7 +124,7 @@ module.exports = function (item) {
     $("#templated button").click(function (e) {
         if (confirm("Are you sure you want to delete?")) {
             var id = $(e.target).parents("tr").attr("itemid");
-            var index = app.Navigation.indexOf(app.Navigation.filter(c.idIs(id))[0]);
+            var index = app.Navigation.indexOf(app.Navigation.filter(condition('id', id))[0]);
             app.Navigation.splice(index, 1);
             view.navigationTableEdit();
             setStatus("Deleting...");

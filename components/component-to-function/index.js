@@ -8,21 +8,49 @@ module.exports = toFunction;
 /**
  * Convert `obj` to a `Function`.
  *
- * TODO: consider compiling to functions.
- *
  * @param {Mixed} obj
  * @return {Function}
  * @api private
  */
 
 function toFunction(obj) {
-  switch (typeof obj) {
-    case 'function':
+  switch ({}.toString.call(obj)) {
+    case '[object Function]':
       return obj;
-    case 'string':
+    case '[object String]':
       return stringToFunction(obj);
+    case '[object RegExp]':
+      return regexpToFunction(obj);
     default:
-      throw new TypeError('invalid callback "' + obj + '"');
+      return defaultToFunction(obj);
+  }
+}
+
+/**
+ * Default to strict equality.
+ *
+ * @param {Mixed} val
+ * @return {Function}
+ * @api private
+ */
+
+function defaultToFunction(val) {
+  return function(obj){
+    return val === obj;
+  }
+}
+
+/**
+ * Convert `re` to a function.
+ *
+ * @param {RegExp} re
+ * @return {Function}
+ * @api private
+ */
+
+function regexpToFunction(re) {
+  return function(obj){
+    return re.test(obj);
   }
 }
 
@@ -35,17 +63,9 @@ function toFunction(obj) {
  */
 
 function stringToFunction(str) {
-  var props = str.split('.');
-  return function(obj){
-    for (var i = 0; i < props.length; ++i) {
-      if (null == obj) return;
-      var name = props[i];
-      if ('function' == typeof obj[name]) {
-        obj = obj[name]();
-      } else {
-        obj = obj[name];
-      }
-    }
-    return obj;
-  }
+  // immediate such as "> 20"
+  if (/^ *\W+/.test(str)) return new Function('_', 'return _ ' + str);
+
+  // properties such as "name.first" or "age > 18"
+  return new Function('_', 'return _.' + str);
 }

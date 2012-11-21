@@ -1,4 +1,4 @@
-var app = require('../app');
+var app = require('../');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
 

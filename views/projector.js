@@ -1,4 +1,4 @@
-﻿var app = require('../app');
+﻿var app = require('../');
 var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
@@ -6,12 +6,13 @@ var navigationItemOrder = require('../helpers/navigation-item-order');
 var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var stream = require('../stream');
+var condition = require('to-bool-function');
 
 var homeHTML;
 function selectStaircaseGroups(staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
             staircase.rooms = staircaseGroups[staircaseID]
                 .filter(function (room) {
                     return room.rentband !== 0;
@@ -50,7 +51,7 @@ exports.enter = function () {
                 $(".unavailable").fadeOut(2000);
             }
         });
-        var mappedStaircases = selectStaircaseGroups(groupBy(app.Navigation.filter(c.typeIs("room")), 'parentid'))
+        var mappedStaircases = selectStaircaseGroups(groupBy(app.Navigation.filter(condition('type', 'room')), 'parentid'))
             .sort(navigationItemOrder);
         $("#page").removeClass("page").addClass("projector");
         $("body").removeClass("background");

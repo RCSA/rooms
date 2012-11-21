@@ -1,16 +1,16 @@
-var app = require('../app');
+var app = require('../');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
 var groupBy = require('group-by');
+var condition = require('to-bool-function');
 
 module.exports = function (staircase) {
-    "use strict";
     /// <summary>Loads and displays a staircase.  It will load markdown and structured data separately.</summary>
     /// <param name="SelectedStaircaseID" type="String">The ID of the staircase to display.</param>
 
     loadMarkdown(staircase);
 
-    var rooms = app.Navigation.filter(c.parentIs(staircase.id)).filter(c.typeIs("room"));
+    var rooms = app.Navigation.filter(condition('parentid', staircase.id)).filter(condition('type', 'room'));
     var floors = toFloorsArray(groupBy(rooms, 'floor'));
 
     $("#templated").html(template("staircase", { Floors: floors }));

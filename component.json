@@ -3,13 +3,15 @@
   "dependencies": {
     "ForbesLindesay/curry": "*",
     "ForbesLindesay/queue": "*",
+    "ForbesLindesay/to-bool-function": "",
     "ForbesLindesay/base64-encode": "*",
+    "ForbesLindesay/imgur": "*",
     "component/find": "*",
     "component/group-by": "*",
     "component/emitter": "*"
   },
   "scripts": [
-    "app.js",
+    "index.js",
     "model.js",
     "views/static-page.js",
     "views/staircase.js",

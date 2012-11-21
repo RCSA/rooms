@@ -1,3 +1,4 @@
+;(function(){
 /**
  * Require the given path.
  *
@@ -246,6 +247,191 @@ function queue(mixin) {
     return exports;
 }
 });
+require.register("component-to-function/index.js", function(module, exports, require){
+
+/**
+ * Expose `toFunction()`.
+ */
+
+module.exports = toFunction;
+
+/**
+ * Convert `obj` to a `Function`.
+ *
+ * @param {Mixed} obj
+ * @return {Function}
+ * @api private
+ */
+
+function toFunction(obj) {
+  switch ({}.toString.call(obj)) {
+    case '[object Function]':
+      return obj;
+    case '[object String]':
+      return stringToFunction(obj);
+    case '[object RegExp]':
+      return regexpToFunction(obj);
+    default:
+      return defaultToFunction(obj);
+  }
+}
+
+/**
+ * Default to strict equality.
+ *
+ * @param {Mixed} val
+ * @return {Function}
+ * @api private
+ */
+
+function defaultToFunction(val) {
+  return function(obj){
+    return val === obj;
+  }
+}
+
+/**
+ * Convert `re` to a function.
+ *
+ * @param {RegExp} re
+ * @return {Function}
+ * @api private
+ */
+
+function regexpToFunction(re) {
+  return function(obj){
+    return re.test(obj);
+  }
+}
+
+/**
+ * Convert property `str` to a function.
+ *
+ * @param {String} str
+ * @return {Function}
+ * @api private
+ */
+
+function stringToFunction(str) {
+  // immediate such as "> 20"
+  if (/^ *\W+/.test(str)) return new Function('_', 'return _ ' + str);
+
+  // properties such as "name.first" or "age > 18"
+  return new Function('_', 'return _.' + str);
+}
+});
+require.register("component-type/index.js", function(module, exports, require){
+
+/**
+ * toString ref.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Return the type of `val`.
+ *
+ * @param {Mixed} val
+ * @return {String}
+ * @api public
+ */
+
+module.exports = function(val){
+  switch (toString.call(val)) {
+    case '[object Function]': return 'function';
+    case '[object Date]': return 'date';
+    case '[object RegExp]': return 'regexp';
+    case '[object Arguments]': return 'arguments';
+    case '[object Array]': return 'array';
+  }
+
+  if (val === null) return 'null';
+  if (val === undefined) return 'undefined';
+  if (val === Object(val)) return 'object';
+
+  return typeof val;
+};
+
+});
+require.register("ForbesLindesay-to-bool-function/index.js", function(module, exports, require){
+var toFunction = require('to-function');
+var type = require('type');
+
+module.exports = toBoolFunction;
+
+/**
+ * Convert various possible things into a match function
+ * 
+ * @param  {Any} [selector]
+ * @param  {Any} condition
+ * @return {Function}
+ */
+function toBoolFunction(selector, condition) {
+  if (arguments.length == 2) {
+    selector = toFunction(selector);
+    condition = toBoolFunction(condition);
+    return function () {
+      return condition(selector.apply(this, arguments));
+    };
+  } else {
+    condition = selector;
+  }
+  var alternate = false;
+  try {
+    switch (type(condition)) {
+      case 'regexp':
+        alternate = regexpToFunction(condition);
+        break;
+      case 'string':
+      case 'function':
+        alternate = toFunction(condition);
+        break;
+      case 'object':
+        alternate = objectToFunction(condition);
+        break;
+    }
+  } catch (ex) {
+    //ignore things that aren't valid functions
+  }
+  return function (val) {
+    return (val === condition) ||
+      (alternate && alternate.apply(this, arguments));
+  }
+}
+
+/**
+ * Convert `regexp` into a match funciton
+ * 
+ * @param  {Regexp} regexp
+ * @return {Function}
+ * @api private
+ */
+function regexpToFunction(regexp) {
+  return function (val) {
+    return regexp.test(val);
+  };
+}
+
+/**
+ * Convert `obj` into a match function.
+ *
+ * @param  {Object} obj
+ * @return {Function}
+ * @api private
+ */
+function objectToFunction(obj) {
+  var fns = Object.keys(obj)
+    .map(function (key) {
+      return toBoolFunction(key, obj[key]);
+    });
+  return function(o){
+    for (var i = 0; i < fns.length; i++) {
+      if (!fns[i](o)) return false;
+    }
+    return true;
+  }
+}
+});
 require.register("ForbesLindesay-utf8-encode/index.js", function(module, exports, require){
 module.exports = encode;
 
@@ -313,57 +499,156 @@ function encode(input) {
     return output;
 }
 });
-require.register("component-to-function/index.js", function(module, exports, require){
+require.register("ForbesLindesay-promises-a/index.js", function(module, exports, require){
+;(function () {
+  function promise() {
+    var resolved = false,
+        fulfilled = false,
+        val,
+        waiting = [],
+        running = false,
+        prom = {then: then, valueOf: valueOf, done: done}
 
-/**
- * Expose `toFunction()`.
- */
-
-module.exports = toFunction;
-
-/**
- * Convert `obj` to a `Function`.
- *
- * TODO: consider compiling to functions.
- *
- * @param {Mixed} obj
- * @return {Function}
- * @api private
- */
-
-function toFunction(obj) {
-  switch (typeof obj) {
-    case 'function':
-      return obj;
-    case 'string':
-      return stringToFunction(obj);
-    default:
-      throw new TypeError('invalid callback "' + obj + '"');
-  }
-}
-
-/**
- * Convert property `str` to a function.
- *
- * @param {String} str
- * @return {Function}
- * @api private
- */
-
-function stringToFunction(str) {
-  var props = str.split('.');
-  return function(obj){
-    for (var i = 0; i < props.length; ++i) {
-      if (null == obj) return;
-      var name = props[i];
-      if ('function' == typeof obj[name]) {
-        obj = obj[name]();
+    function next(skipTimeout) {
+      if (waiting.length) {
+        running = true
+        waiting.shift()(skipTimeout || false)
       } else {
-        obj = obj[name];
+        running = false
       }
     }
-    return obj;
+    function then(cb, eb) {
+      var def = promise()
+      function done(skipTimeout) {
+        var callback = fulfilled ? cb : eb
+        if (typeof callback === 'function') {
+          function timeoutDone() {
+            var value;
+            try {
+              value = callback(val)
+            } catch (ex) {
+              def.reject(ex)
+              return next()
+            }
+            def.fulfill(value);
+            next(true);
+          }
+          if (skipTimeout) timeoutDone();
+          else setTimeout(timeoutDone, 0)
+        } else if (fulfilled) {
+          def.fulfill(val)
+          next(skipTimeout)
+        } else {
+          def.reject(val)
+          next(skipTimeout)
+        }
+      }
+      waiting.push(done);
+      if (resolved && !running) {
+        next()
+      }
+      return def.promise
+    }
+    function done(cb, eb) {
+      var p = prom
+      if (cb || eb) {
+        p = p.then(cb, eb)
+      }
+      p.then(null, function (reason) {
+        setTimeout(function () {
+          throw reason
+        }, 0)
+      })
+    }
+    function resolve(success, value) {
+      if (resolved) return;
+      if (success && typeof value === 'object' && typeof value.then === 'function') {
+        value.then(fulfill, reject)
+        return
+      }
+      resolved = true
+      fulfilled = success
+      val = value
+      next()
+    }
+    function fulfill(val) {
+      resolve(true, val)
+    }
+    function reject(err) {
+      resolve(false, err)
+    }
+
+    function valueOf() {
+      return fulfilled ? val : prom;
+    }
+
+    return {
+      promise: prom,
+      fulfill: fulfill,
+      reject: reject
+    }
   }
+  
+  if (typeof module != 'undefined' && typeof module.exports != 'undefined')
+    module.exports = promise
+  else
+    window.promise = promise
+}())
+});
+require.register("ForbesLindesay-imgur/index.js", function(module, exports, require){
+var promise = require('promises-a');
+var emitter = require('emitter');
+
+// Get your own key: http://api.imgur.com/
+module.exports = imgur;
+function imgur(apiKey) {
+  function upload(file) {
+    var def = promise();
+    emitter(def.promise);
+    try {
+      if (!file) {
+        var err = new Error('You must supply an image to upload.');
+        err.code = 'MissingFile';
+        throw err;
+      }
+      if (!file.type.match(/image.*/)) {
+        var err = new Error('Invalid file type, imgur only accepts images.');
+        err.code = 'InvalidFileType';
+        throw err;
+      }
+
+      var fd = new FormData();
+      fd.append("image", file); // Append the file
+      fd.append("key", apiKey);
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "http://api.imgur.com/2/upload.json"); // Boooom!
+      xhr.onload = function () {
+        try {
+          def.fulfill(JSON.parse(xhr.responseText).upload);
+        } catch (ex) {
+          def.reject(ex);
+        }
+      }
+      xhr.onerror = def.reject;
+      xhr.upload.onprogress = function (e) {
+        e.perecent = e.loaded / e.total * 100;
+        def.promise.emit('progress', e);
+      }
+      def.promise.abort = function () {
+        xhr.abort();
+        var err = new Error('Image upload aborted');
+        err.code = 'UploadAborted';
+        def.reject(err);
+      };
+
+      xhr.send(fd);
+    } catch (ex) {
+      def.reject(ex);
+    }
+    return def.promise;
+  }
+  return {upload: upload};
 }
 });
 require.register("component-find/index.js", function(module, exports, require){
@@ -594,7 +879,7 @@ Emitter.prototype.hasListeners = function(event){
 
 
 });
-require.register("rooms/app.js", function(module, exports, require){
+require.register("rooms/index.js", function(module, exports, require){
 var staticPage = require('./views/static-page');
 var loadStaircase = require('./views/staircase');
 var loadRoom = require('./views/room');
@@ -611,6 +896,7 @@ var template = require('./template');
 var Path = require('./libraries/path');
 var server = require('./server');
 var stream = require('./stream');
+var condition = require('to-bool-function');
 
 var $ = jQuery;
 exports.SelectedStaircaseID = '';
@@ -708,11 +994,11 @@ exports.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
     var nav = exports.Navigation.filter(permission);
 
     //Load Staircases
-    var Staircases = nav.filter(c.parentIs("Root"));
+    var Staircases = nav.filter(condition('parentid', 'Root'));
     $("#staircases").html(template("NavigationList", { Links: Staircases }));
 
     //Load Rooms
-    var Rooms = nav.filter(c.parentIs(exports.SelectedStaircaseID));
+    var Rooms = nav.filter(condition('parentid', exports.SelectedStaircaseID));
     $("#rooms").html(template("NavigationList", { Links: Rooms }));
 }
 
@@ -721,7 +1007,8 @@ function mapPaths() {
     function map(path, spec) {
         var exit = spec.exit || function () { };
         Path.map(path).to(function () {
-            var item = find(exports.Navigation, c.idIs(this.params[spec.id] || spec.id)) || spec.item;
+            var item = find(exports.Navigation, condition('id', this.params[spec.id] || spec.id))
+             || spec.item;
             var parentid = this.params[spec.parentIDs] || spec.parentIDs;
             if (!parentid || (item.parentid === parentid) || 
                 (spec.parentIDs.some && spec.parentIDs.some(function (id) { return id == item.parentid; }))) {
@@ -820,7 +1107,7 @@ mapPaths();
 run();
 });
 require.register("rooms/model.js", function(module, exports, require){
-﻿var app = require('./app');
+﻿var app = require('./');
 
 function cleanSpec(spec) {
     var i;
@@ -933,19 +1220,19 @@ function staticPage(item) {
 }
 });
 require.register("rooms/views/staircase.js", function(module, exports, require){
-var app = require('../app');
+var app = require('../');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
 var groupBy = require('group-by');
+var condition = require('to-bool-function');
 
 module.exports = function (staircase) {
-    "use strict";
     /// <summary>Loads and displays a staircase.  It will load markdown and structured data separately.</summary>
     /// <param name="SelectedStaircaseID" type="String">The ID of the staircase to display.</param>
 
     loadMarkdown(staircase);
 
-    var rooms = app.Navigation.filter(c.parentIs(staircase.id)).filter(c.typeIs("room"));
+    var rooms = app.Navigation.filter(condition('parentid', staircase.id)).filter(condition('type', 'room'));
     var floors = toFloorsArray(groupBy(rooms, 'floor'));
 
     $("#templated").html(template("staircase", { Floors: floors }));
@@ -964,7 +1251,7 @@ function toFloorsArray(floors) {
 }
 });
 require.register("rooms/views/room.js", function(module, exports, require){
-var app = require('../app');
+var app = require('../');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
 
@@ -977,7 +1264,7 @@ module.exports = function (room) {
 }
 });
 require.register("rooms/views/projector.js", function(module, exports, require){
-﻿var app = require('../app');
+﻿var app = require('../');
 var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
@@ -985,12 +1272,13 @@ var navigationItemOrder = require('../helpers/navigation-item-order');
 var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var stream = require('../stream');
+var condition = require('to-bool-function');
 
 var homeHTML;
 function selectStaircaseGroups(staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
             staircase.rooms = staircaseGroups[staircaseID]
                 .filter(function (room) {
                     return room.rentband !== 0;
@@ -1029,7 +1317,7 @@ exports.enter = function () {
                 $(".unavailable").fadeOut(2000);
             }
         });
-        var mappedStaircases = selectStaircaseGroups(groupBy(app.Navigation.filter(c.typeIs("room")), 'parentid'))
+        var mappedStaircases = selectStaircaseGroups(groupBy(app.Navigation.filter(condition('type', 'room')), 'parentid'))
             .sort(navigationItemOrder);
         $("#page").removeClass("page").addClass("projector");
         $("body").removeClass("background");
@@ -1068,7 +1356,7 @@ exports.exit = function () {
 }
 });
 require.register("rooms/views/navigation-table-edit.js", function(module, exports, require){
-﻿var app = require('../app');
+﻿var app = require('../');
 var model = require('../model');
 var loadMarkdown = require('../markdown/load-markdown');
 var toTable = require('../helpers/table');
@@ -1076,6 +1364,7 @@ var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var server = require('../server');
+var condition = require('to-bool-function');
 
 function validBathroom(n) {
     return !isNaN(Number(n)) && Number(n) >= 0;
@@ -1092,11 +1381,11 @@ function validationError(message) {
     return false;
 }
 function validateSpec(spec, idChange) {
-    if (idChange && app.Navigation.some(c.idIs(spec.id))) {
+    if (idChange && app.Navigation.some(condition('id', spec.id))) {
         return validationError("There is already an item with this ID");
     } else if (spec.id === spec.parentid) {
         return validationError("An item can't be its own parent");
-    } else if (spec.parentid !== "Root" && !app.Navigation.some(c.idIs(spec.parentid))) {
+    } else if (spec.parentid !== "Root" && !app.Navigation.some(condition('id', spec.parentid))) {
         return validationError('The parent ID must either be the ID of an existing item or "Root"');
     }
 
@@ -1121,7 +1410,7 @@ function validateSpec(spec, idChange) {
     return true;
 }
 function cascadeIDChange(oldID, newID) {
-    var children = app.Navigation.filter(c.parentIs(oldID));
+    var children = app.Navigation.filter(condition('parentid', oldID));
     for (var i = 0; i < children.length; i++) {
         children[i].parentid = newID;
     }
@@ -1156,7 +1445,7 @@ function create(e) {
     return false;
 }
 function update(id, name, value) {
-    var item = app.Navigation.filter(c.idIs(id))[0];
+    var item = app.Navigation.filter(condition('id', id))[0];
     var spec = Object.create(item);
     spec[name] = value;
 
@@ -1193,7 +1482,7 @@ module.exports = function (item) {
     $("#templated button").click(function (e) {
         if (confirm("Are you sure you want to delete?")) {
             var id = $(e.target).parents("tr").attr("itemid");
-            var index = app.Navigation.indexOf(app.Navigation.filter(c.idIs(id))[0]);
+            var index = app.Navigation.indexOf(app.Navigation.filter(condition('id', id))[0]);
             app.Navigation.splice(index, 1);
             view.navigationTableEdit();
             setStatus("Deleting...");
@@ -1206,7 +1495,7 @@ module.exports = function (item) {
 };
 });
 require.register("rooms/views/allocation-edit.js", function(module, exports, require){
-﻿var app = require('../app');
+﻿var app = require('../');
 var setStatus = require('../helpers/status-display').setStatus;
 var curry = require('curry');
 var find = require('find');
@@ -1217,6 +1506,7 @@ var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var server = require('../server');
 var stream = require('../stream');
+var condition = require('to-bool-function');
 
 var selectRoomAllocation = curry(function (allocations, room) {
     var allocation = allocations[room.id];
@@ -1229,14 +1519,14 @@ var selectRoomAllocation = curry(function (allocations, room) {
 function selectStaircaseGroups(allocations, staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
             staircase.rooms = staircaseGroups[staircaseID].map(selectRoomAllocation(allocations));
             return staircase;
         });
 }
 var selectStaircaseGroup = curry(function (allocations, roomsInStaircase) {
     var staircaseID = roomsInStaircase[0].parentid;
-    var staircase = Object.create(find(app.Navigation, c.idIs(staircaseID)));
+    var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
     staircase.rooms = roomsInStaircase.map(selectRoomAllocation(allocations));
     return staircase;
 });
@@ -1256,7 +1546,7 @@ exports.enter = function (item) {
         var allocations = allocationsData.defaultAllocations();
         var year = allocations.year;
         var mappedStaircases = selectStaircaseGroups(allocations, groupBy(app.Navigation
-            .filter(c.typeIs("room"))
+            .filter(condition('type', "room"))
             .filter(function (room) { return room.rentband !== 0; }),
             'parentid'))
             .sort(navigationItemOrder);
@@ -1289,7 +1579,7 @@ exports.exit = function () {
 };
 });
 require.register("rooms/markdown/load-markdown.js", function(module, exports, require){
-var app = require('../app');
+var app = require('../');
 var converter = require('./converter');
 var server = require('../server');
 
@@ -1308,43 +1598,17 @@ module.exports = function (item, special) {
 }
 });
 require.register("rooms/markdown/edit-markdown.js", function(module, exports, require){
-var app = require('../app');
+var app = require('../');
 var converter = require('./converter');
 var setStatus = require('../helpers/status-display').setStatus;
 var Markdown = require('../libraries/pagedown.js');
 var template = require('../template');
 var server = require('../server');
 
+var imgur = require('imgur');
 var imgurAPIKey = "e0b484465d77858ebaf6b3c7c1732909";
-function upload(file, callback) {
+var upload = imgur(imgurAPIKey).upload;
 
-    // file is from a <input> tag or from Drag'n Drop
-    // Is the file an image?
-
-    if (!file || !file.type.match(/image.*/)) return;
-
-    // It is!
-    // Let's build a FormData object
-
-    var fd = new FormData();
-    fd.append("image", file); // Append the file
-    fd.append("key", imgurAPIKey);
-    // Get your own key: http://api.imgur.com/
-
-    // Create the XHR (Cross-Domain XHR FTW!!!)
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://api.imgur.com/2/upload.json"); // Boooom!
-    xhr.onload = function () {
-        // Big win!
-        // The URL of the image is:
-        var links = JSON.parse(xhr.responseText).upload.links;
-        //{delete_page, imgur_page, large_thumbnail, original, small_square};
-        callback(links.original);
-    }
-    // Ok, I don't handle the errors. An exercice for the reader.
-    // And now, we send the formdata
-    xhr.send(fd);
-}
 function createDialogs() {
     $(".dialog").dialog({
         autoOpen: false
@@ -1398,16 +1662,22 @@ function createEditor() {
             if (data === false) {
                 callback(null);
             } else {
-                var files = data.find("input")[0].files; // FileList object
-                if (files.length !== 1) {
-                    callback(null);
-                } else {
-                    dialogs.showBusy();
-                    upload(files[0], function (url) {
+                dialogs.showBusy();
+                upload(data.find("input")[0].files[0])
+                    .then(function (result) {
                         dialogs.hideBusy();
-                        callback(url);
+                        callback(result.links.original);
+                    }, function (reason) {
+                        dialogs.hideBusy();
+                        callback(null);
+                        if (reason.code === 'InvalidFileType') {
+                            alert('The file you provided was not a valid image.');
+                        } else  if (reason.code === 'MissingFile') {
+                            alert('You didn\'t provide an image to upload');
+                        } else {
+                            throw reason;
+                        }
                     });
-                }
             }
         });
         return true; // tell the editor that we'll take care of getting the image url
@@ -2061,8 +2331,18 @@ require.alias("ForbesLindesay-curry/index.js", "rooms/deps/curry/index.js");
 
 require.alias("ForbesLindesay-queue/index.js", "rooms/deps/queue/index.js");
 
+require.alias("ForbesLindesay-to-bool-function/index.js", "rooms/deps/to-bool-function/index.js");
+require.alias("component-to-function/index.js", "ForbesLindesay-to-bool-function/deps/to-function/index.js");
+
+require.alias("component-type/index.js", "ForbesLindesay-to-bool-function/deps/type/index.js");
+
 require.alias("ForbesLindesay-base64-encode/index.js", "rooms/deps/base64-encode/index.js");
 require.alias("ForbesLindesay-utf8-encode/index.js", "ForbesLindesay-base64-encode/deps/utf8-encode/index.js");
+
+require.alias("ForbesLindesay-imgur/index.js", "rooms/deps/imgur/index.js");
+require.alias("ForbesLindesay-promises-a/index.js", "ForbesLindesay-imgur/deps/promises-a/index.js");
+
+require.alias("component-emitter/index.js", "ForbesLindesay-imgur/deps/emitter/index.js");
 
 require.alias("component-find/index.js", "rooms/deps/find/index.js");
 require.alias("component-to-function/index.js", "component-find/deps/to-function/index.js");
@@ -2071,3 +2351,5 @@ require.alias("component-group-by/index.js", "rooms/deps/group-by/index.js");
 require.alias("component-to-function/index.js", "component-group-by/deps/to-function/index.js");
 
 require.alias("component-emitter/index.js", "rooms/deps/emitter/index.js");
+window.rooms = require("rooms");
+})();

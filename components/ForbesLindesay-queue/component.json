@@ -2,7 +2,7 @@
   "name": "queue",
   "repo": "ForbesLindesay/queue",
   "description": "A queue built from two stacks",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "keywords": [],
   "dependencies": {},
   "development": {},
