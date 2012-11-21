@@ -25,7 +25,7 @@ else
 (function () {
 
     function identity(x) { return x; }
-    function returnFalse(x) { return false; }
+    function returnFalse() { return false; }
 
     function HookCollection() { }
 
@@ -976,8 +976,7 @@ else
             */
 
             text = text.replace(/(^|[^\\])(`+)([^\r]*?[^`])\2(?!`)/gm,
-                function (wholeMatch, m1, m2, m3, m4) {
-                    var c = m3;
+                function (wholeMatch, m1, _, c) {
                     c = c.replace(/^([ \t]*)/g, ""); // leading whitespace
                     c = c.replace(/[ \t]*$/g, ""); // trailing whitespace
                     c = _EncodeCode(c);
@@ -2231,7 +2230,6 @@ else
 
     function PreviewManager(converter, panels, previewRefreshCallback) {
 
-        var managerObj = this;
         var timeout;
         var elapsedTime;
         var oldInputText;
@@ -2810,10 +2808,6 @@ else
         function makeSpritedButtonRow() {
 
             var buttonBar = panels.buttonBar;
-
-            var normalYShift = "0px";
-            var disabledYShift = "-20px";
-            var highlightYShift = "-40px";
 
             var buttonRow = document.createElement("ul");
             buttonRow.id = "wmd-button-row" + postfix;
@@ -3438,7 +3432,7 @@ else
         var num = 1;
 
         // Get the item prefix - e.g. " 1. " for a numbered list, " - " for a bulleted list.
-        var getItemPrefix = function () {
+        function getItemPrefix() {
             var prefix;
             if (isNumberedList) {
                 prefix = " " + num + ". ";
@@ -3451,7 +3445,7 @@ else
         };
 
         // Fixes the prefixes of the other list items.
-        var getPrefixedItem = function (itemText) {
+        function getPrefixedItem(itemText) {
 
             // The numbering flag is unset when called by autoindent.
             if (isNumberedList === undefined) {
@@ -3459,10 +3453,7 @@ else
             }
 
             // Renumber/bullet the list element.
-            itemText = itemText.replace(/^[ ]{0,3}([*+-]|\d+[.])\s/gm,
-                function (_) {
-                    return getItemPrefix();
-                });
+            itemText = itemText.replace(/^[ ]{0,3}([*+-]|\d+[.])\s/gm, getItemPrefix);
 
             return itemText;
         };
