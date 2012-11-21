@@ -5,7 +5,6 @@ var find = require('find');
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var loadMarkdown = require('../markdown/load-markdown');
-var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var server = require('../server');
 var stream = require('../stream');
@@ -31,11 +30,12 @@ function selectStaircaseGroups(allocations, staircaseGroups) {
 var isInAllocationEdit = false;
 $("#isThisYears").click(function () {
     if (isInAllocationEdit) {
-        refresh();
+        enter();
     }
 });
 
-exports.enter = function (item) {
+exports.enter = enter;
+function enter(item) {
     isInAllocationEdit = true;
     loadMarkdown(item, true);
     $("#templated").html();
@@ -70,6 +70,8 @@ exports.enter = function (item) {
         $('form[data-roomid="' + roomid + '"] input').val(allocation.crsid);
     });
 };
-exports.exit = function () {
+
+exports.exit = exit;
+function exit() {
     isInAllocationEdit = false;
 };

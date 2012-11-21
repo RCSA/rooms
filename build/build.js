@@ -1260,7 +1260,6 @@ var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
-var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var stream = require('../stream');
 var condition = require('to-bool-function');
@@ -1281,7 +1280,7 @@ var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {
         exports.exit();
-        refresh();
+        exports.enter();
     }
 });
 var displayUnavailableRooms = true;
@@ -1492,7 +1491,6 @@ var find = require('find');
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var loadMarkdown = require('../markdown/load-markdown');
-var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var server = require('../server');
 var stream = require('../stream');
@@ -1518,11 +1516,12 @@ function selectStaircaseGroups(allocations, staircaseGroups) {
 var isInAllocationEdit = false;
 $("#isThisYears").click(function () {
     if (isInAllocationEdit) {
-        refresh();
+        enter();
     }
 });
 
-exports.enter = function (item) {
+exports.enter = enter;
+function enter(item) {
     isInAllocationEdit = true;
     loadMarkdown(item, true);
     $("#templated").html();
@@ -1557,7 +1556,9 @@ exports.enter = function (item) {
         $('form[data-roomid="' + roomid + '"] input').val(allocation.crsid);
     });
 };
-exports.exit = function () {
+
+exports.exit = exit;
+function exit() {
     isInAllocationEdit = false;
 };
 });
@@ -5480,12 +5481,6 @@ module.exports = Markdown;
 });
 require.register("rooms/libraries/path.js", function(module, exports, require){
 var Path = { version: "0.8", map: function (a) { if (Path.routes.defined.hasOwnProperty(a)) { return Path.routes.defined[a] } else { return new Path.core.route(a) } }, root: function (a) { Path.routes.root = a }, rescue: function (a) { Path.routes.rescue = a }, history: { pushState: function (a, c, b) { if (Path.history.supported) { if (Path.dispatch(b)) { history.pushState(a, c, b) } } else { if (Path.history.fallback) { window.location.hash = "#" + b } } }, popState: function (a) { Path.dispatch(document.location.pathname) }, listen: function (a) { Path.history.supported = !!(window.history && window.history.pushState); Path.history.fallback = a; if (Path.history.supported) { window.onpopstate = Path.history.popState } else { if (Path.history.fallback) { for (route in Path.routes.defined) { if (route.charAt(0) != "#") { Path.routes.defined["#" + route] = Path.routes.defined[route]; Path.routes.defined["#" + route].path = "#" + route } } Path.listen() } } } }, match: function (k, h) { var b = {}, g = null, e, f, d, c, a; for (g in Path.routes.defined) { if (g !== null && g !== undefined) { g = Path.routes.defined[g]; e = g.partition(); for (c = 0; c < e.length; c++) { f = e[c]; a = k; if (f.search(/:/) > 0) { for (d = 0; d < f.split("/").length; d++) { if ((d < a.split("/").length) && (f.split("/")[d].charAt(0) === ":")) { b[f.split("/")[d].replace(/:/, "")] = a.split("/")[d]; a = a.replace(a.split("/")[d], f.split("/")[d]) } } } if (f === a) { if (h) { g.params = b } return g } } } } return null }, dispatch: function (a) { var b, c; if (Path.routes.current !== a) { Path.routes.previous = Path.routes.current; Path.routes.current = a; c = Path.match(a, true); if (Path.routes.previous) { b = Path.match(Path.routes.previous); if (b !== null && b.do_exit !== null) { b.do_exit() } } if (c !== null) { c.run(); return true } else { if (Path.routes.rescue !== null) { Path.routes.rescue() } } } }, listen: function () { var a = function () { Path.dispatch(location.hash) }; if (location.hash === "") { if (Path.routes.root !== null) { location.hash = Path.routes.root } } else { Path.dispatch(location.hash) } if ("onhashchange" in window) { window.onhashchange = a } else { setInterval(a, 50) } }, core: { route: function (a) { this.path = a; this.action = null; this.do_enter = []; this.do_exit = null; this.params = {}; Path.routes.defined[a] = this } }, routes: { current: null, root: null, rescue: null, previous: null, defined: {}} }; Path.core.route.prototype = { to: function (a) { this.action = a; return this }, enter: function (a) { if (a instanceof Array) { this.do_enter = this.do_enter.concat(a) } else { this.do_enter.push(a) } return this }, exit: function (a) { this.do_exit = a; return this }, partition: function () { var d = [], a = [], c = /\(([^}]+?)\)/g, e, b; while (e = c.exec(this.path)) { d.push(e[1]) } a.push(this.path.split("(")[0]); for (b = 0; b < d.length; b++) { a.push(a[a.length - 1] + d[b]) } return a }, run: function () { var b = false, c, a, d; if (Path.routes.defined[this.path].hasOwnProperty("do_enter")) { if (Path.routes.defined[this.path].do_enter.length > 0) { for (c = 0; c < Path.routes.defined[this.path].do_enter.length; c++) { a = Path.routes.defined[this.path].do_enter[c](); if (a === false) { b = true; break } } } } if (!b) { Path.routes.defined[this.path].action() } } };
-
-
-Path.refresh = function () {
-    Path.routes.current = null;
-    Path.dispatch(location.hash);
-};
 
 module.exports = Path;
 });

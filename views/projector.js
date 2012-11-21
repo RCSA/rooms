@@ -3,7 +3,6 @@ var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
-var refresh = require('../libraries/path').refresh;
 var groupBy = require('group-by');
 var stream = require('../stream');
 var condition = require('to-bool-function');
@@ -24,7 +23,7 @@ var isInProjectorMode = false;
 $("#isThisYears").click(function () {
     if (isInProjectorMode) {
         exports.exit();
-        refresh();
+        exports.enter();
     }
 });
 var displayUnavailableRooms = true;
