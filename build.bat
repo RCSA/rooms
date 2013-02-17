@@ -1,1 +1,1 @@
-component-build -s rooms && uglifyjs2 build/build.js -c -m > build/javascriptBundle.js
+component-build -s rooms && uglifyjs build/build.js -c -m > build/javascriptBundle.js
