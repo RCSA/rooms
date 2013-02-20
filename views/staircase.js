@@ -25,5 +25,15 @@ function toFloorsArray(floors) {
         Name: floors[floor][0].floorDescription(),
         Rooms: floors[floor]
       }
+    })
+    .map(function (floor) {
+      return {
+        floor: floor,
+        Name: floors[floor][0].floorDescription(),
+        Rooms: floors[floor]
+      }
+    })
+    .sort(function (f1, f2) {
+      return f1.floor - f2.floor;
     });
 }
