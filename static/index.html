@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!--Required for securty-->
+    <meta charset="utf-8">
+    <title>Robinson Rooms</title>
+    <!--Support IE9 Pinned Sites-->
+    <meta name="application-name" content="Robinson Rooms" />
+    <meta name="msapplication-tooltip" content="Robinson Rooms provides info about rooms available for undergraduates at Robinson College." />
+    <meta name="msapplication-starturl" content="http://www.rcsa.co.uk/rooms#/" />
+    <meta name="msapplication-navbutton-color" content="#6699FF" />
+    <!--Support Facebook Sharing-->
+    <meta property="og:title" content="Robinson Rooms" />
+    <meta property="og:description" content="The RCSA Room Ballot and Room Wiki for information about rooms available for undergraduates at Robinson College." />
+    <meta property="og:image" content="apple-touch-icon.png" />
+    <!--iOS-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css"
+        type="text/css" media="all">
+</head>
+<body class="loading">
+    <div id="page" class="page" style="display: none;">
+        <div class="header">
+            <div>
+                <span id="status"></span><span id="header"></span>
+                <input id="isThisYears" type="checkbox" />Show this year's room allocations instead
+                of next years. <span style="float: right">Created by <a href="http://www.jepso.com/">
+                    Forbes Lindesay</a> for the RCSA</span>
+            </div>
+            <a href="../">
+                <div class="rcsalogo">
+                </div>
+            </a>
+            <div class="shortcutLinks">
+                <a href="#/">Home</a> | <a href="#/projector/">Projector</a></div>
+        </div>
+        <div id="colmask" class="colmask">
+            <div id="staircases" class="column nav">
+            </div>
+            <div id="rooms" class="column nav">
+            </div>
+            <div id="main" class="column">
+                <div id="markdown">
+                </div>
+                <div id="login" style="display: none;">
+                    <a id="loginButton" href="/user/raven/login/rooms">
+                        <img src="/stylesheets/raven.png" />
+                    </a>
+                </div>
+                <div id="templated">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript at the bottom for fast page loading -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.4.2/mustache.min.js"></script>
+    <script src="/build/build.js"></script>
+    <script>require('rooms')</script>
+</body>
+</html>

@@ -27,8 +27,7 @@ function timeString() {
 
 exports.uri = uri;
 function uri() {
-    return '../user/raven/login/' + base64('rooms/' + location.hash) +
-        '/' + base64('rooms/');
+  return '/raven/login/' + encodeURIComponent(location.hash);
 }
 exports.setStatus = setStatus;
 function setStatus(message, timeout) {

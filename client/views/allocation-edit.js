@@ -37,7 +37,7 @@ $("#isThisYears").click(function () {
 exports.enter = enter;
 function enter(item) {
     isInAllocationEdit = true;
-    loadMarkdown(item, true);
+    if (item) loadMarkdown(item, true);
     $("#templated").html();
     stream.getAllocations(function (allocationsData) {
         var allocations = allocationsData.defaultAllocations();

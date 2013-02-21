@@ -22,12 +22,6 @@ function toFloorsArray(floors) {
   return Object.keys(floors)
     .map(function (floor) {
       return {
-        Name: floors[floor][0].floorDescription(),
-        Rooms: floors[floor]
-      }
-    })
-    .map(function (floor) {
-      return {
         floor: floor,
         Name: floors[floor][0].floorDescription(),
         Rooms: floors[floor]

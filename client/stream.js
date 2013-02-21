@@ -24,7 +24,7 @@ module.exports = (function () {
         $(function () {
             var s = document.createElement('script');
             s.type = 'text/javascript';
-            s.src = 'http://rcsa-rooms-stream.herokuapp.com/socket.io/socket.io.js';
+            s.src = '/socket.io/socket.io.js';
             s.async = false;
 
             s.onreadystatechange = s.onload = function () {
@@ -41,14 +41,15 @@ module.exports = (function () {
 
             function callback() {
                 if (typeof io !== "undefined") {
-                    var socketServer = "http://rcsa-rooms-stream.herokuapp.com/";
+                    var socketServer// = "http://rcsa-rooms-stream.herokuapp.com/";
                     var sio = io.connect(socketServer),
                     socket = sio.socket,
                     authComplete = false;
                     gotNotificationKey = function (key) {
                         notificationKey = key || notificationKey;
                         if (notificationKey && socket.connected) {
-                            sio.emit("auth", notificationKey, function () {
+                            sio.emit("auth", notificationKey, function (data) {
+                                notify(data);
                                 authComplete = true;
                             });
                         }
@@ -57,7 +58,7 @@ module.exports = (function () {
                         gotNotificationKey();
                     });
                     sio.on("message", function (data) {
-                        notify(JSON.parse(data));
+                        notify(data);
                     });
                     var failureTime = 0;
                     setInterval(function () {
@@ -100,7 +101,7 @@ module.exports = (function () {
                     dataType: 'json',
                     data: state,
                     success: function (data) {
-                        handle(data, 5000);
+                        handle(data, 30000);
                     },
                     error: function (u, status) {
                         handle(status, 120000);
@@ -139,10 +140,6 @@ module.exports = (function () {
         for (var i = 0; i < streamResult.allocations.length; i++) {
             var a = streamResult.allocations[i];
             a.year = parseInt(a.year, 10);
-            a.timestamp = parseInt(a.timestamp, 10);
-            if (state.timestamp === undefined || a.timestamp > state.timestamp) {
-                state.timestamp = a.timestamp;
-            }
             var roomid = a.roomid;
             var crsid = a.crsid;
             var year = a.year;

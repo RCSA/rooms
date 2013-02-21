@@ -1,21 +1,5 @@
 ﻿var app = require('./');
 
-function cleanSpec(spec) {
-    var i;
-    var props = ['bathroomsharing', 'rentband', 'floor', 'isgardenfacing'];
-    for (i = 0; i < props.length; i++) {
-        if (spec[props[i]] === null) {
-            delete spec[props[i]];
-        }
-    }
-    var nums = ['bathroomsharing', 'rentband', 'floor'];
-    for (i = 0; i < nums.length; i++) {
-        if (spec[nums[i]]) {
-            spec[nums[i]] = parseInt(spec[nums[i]], 10);
-        }
-    }
-}
-
 var floorDescription = (function () {
     var floors = [
             "Ground Floor", "First Floor", "Second Floor", "Third Floor",
@@ -78,7 +62,6 @@ function nameSingleLine() {
 }
 
 module.exports.navigationItem = function (spec) {
-    cleanSpec(spec);
     var that = Object.create(spec);
     that.weight = spec.weight || 0;
 
