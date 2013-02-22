@@ -16,16 +16,10 @@ mkdirp.sync(join(__dirname, 'data', 'allocations'));
 
 var allocations = [];
 
-var s3Client;
+var s3Client = require('./s3-client')();
 
-if (process.env.RCSA_S3_BUCKET) {
-  console.log('DOWNLOAD FROM S3');
-  require('./download-from-s3')({}, loadAllocations);
-  s3Client = require('./s3-client')();
-} else {
-  console.log('NO DOWNLOAD FROM S3!!');
-  loadAllocations();
-}
+console.log('DOWNLOAD FROM S3');
+require('./download-from-s3')({}, loadAllocations);
 
 function loadAllocations() {
   console.log('\n\n==Downloaded S3==\n\n');
@@ -244,15 +238,3 @@ function updateAllocation(year, roomid, crsid, callback) {
 }
 
 server.listen(3000);
-
-/*
-{"auth":{
-  "isAuthenticated":true,
-  "navigationEdit":false,
-  "markdownEdit":true,
-  "markdownSpecialEdit":false,
-  "allocationsView":true,
-  "allocationsEdit":false,
-  "notificationKey":"3B3FDE2F8E2C46D0B222643015851A22"
-},"changed":2235
-*/

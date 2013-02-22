@@ -1,5 +1,13 @@
 var server = require('./server');
 var Emitter = require('emitter');
+
+var webSocketDomain = '';
+
+if (location.hostname === 'rooms.rcsa.co.uk') {
+    //bypass cloudflare
+    webSocketDomain = 'http://rooms-web-sockets.rcsa.co.uk';
+}
+
 module.exports = (function () {
 
 
@@ -24,7 +32,7 @@ module.exports = (function () {
         $(function () {
             var s = document.createElement('script');
             s.type = 'text/javascript';
-            s.src = '/socket.io/socket.io.js';
+            s.src = webSocketDomain + '/socket.io/socket.io.js';
             s.async = false;
 
             s.onreadystatechange = s.onload = function () {
@@ -41,8 +49,7 @@ module.exports = (function () {
 
             function callback() {
                 if (typeof io !== "undefined") {
-                    var socketServer// = "http://rcsa-rooms-stream.herokuapp.com/";
-                    var sio = io.connect(socketServer),
+                    var sio = io.connect(webSocketDomain + '/'),
                     socket = sio.socket,
                     authComplete = false;
                     gotNotificationKey = function (key) {

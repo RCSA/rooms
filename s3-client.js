@@ -1,12 +1,12 @@
 var knox = require('knox');
+var settings = require('./settings');
 
 module.exports = createClient;
-function createClient(settings) {
-  settings = settings || {};
+function createClient() {
   return knox.createClient({
-    bucket: settings.bucket || process.env.RCSA_S3_BUCKET,
-    key: settings.key || process.env.RCSA_S3_KEY,
-    secret: settings.secret || process.env.RCSA_S3_SECRET,
-    region: settings.region || process.env.RCSA_S3_REGION
+    bucket: settings.get('RCSA_S3_BUCKET'),
+    key: settings.get('RCSA_S3_KEY'),
+    secret: settings.get('RCSA_S3_SECRET'),
+    region: settings.get('RCSA_S3_REGION')
   });
 }
