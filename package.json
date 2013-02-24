@@ -13,7 +13,8 @@
     "request": "~2.14.0",
     "socket.io": "~0.9.13",
     "transform": "~0.0.9",
-    "uglify-js": "~2.2.5"
+    "uglify-js": "~2.2.5",
+    "mongojs": "~0.6.2"
   },
   "devDependencies": {},
   "scripts": {

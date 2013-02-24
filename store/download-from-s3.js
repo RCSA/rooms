@@ -6,9 +6,8 @@ var write = require('fs').createWriteStream;
 var s3Client = require('./s3-client');
 
 module.exports = download;
-function download(settings, cb) {
-  settings = settings || {};
-  var client = s3Client(settings);
+function download(cb) {
+  var client = s3Client();
 
   client.list({
     //delimiter: '/'
@@ -23,11 +22,11 @@ function download(settings, cb) {
       var files = res.Contents.map(function (file) { return file.Key; });
       var tasks = files.length;
       files.forEach(function (file) {
-        mkdirp.sync(dirname(join(__dirname, 'data', file)));
+        mkdirp.sync(dirname(join(__dirname, '..', 'data', file)));
         client.getFile(file, function (err, res) {
           if (err) throw err;
           //console.log('GET: ' + file);
-          var strm = res.pipe(write(join(__dirname, 'data', file)));
+          var strm = res.pipe(write(join(__dirname, '..', 'data', file)));
           strm.on('close', done);
         });
       });

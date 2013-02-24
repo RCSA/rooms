@@ -1,43 +1,21 @@
+var store = require('./store');
 var join = require('path').join;
-var fs = require('fs');
-var mkdirp = require('mkdirp');
+
 var passport = require('passport');
 var Raven = require('passport-raven');
-var express = require('express');
 var transform = require('transform');
+
+var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server, {
   'log level': 2
 });
 
-mkdirp.sync(join(__dirname, 'data', 'markdown'));
-mkdirp.sync(join(__dirname, 'data', 'allocations'));
 
-var allocations = [];
-
-var s3Client = require('./s3-client')();
-
-console.log('DOWNLOAD FROM S3');
-require('./download-from-s3')({}, loadAllocations);
-
-function loadAllocations() {
-  console.log('\n\n==Downloaded S3==\n\n');
-  var currentYear = (new Date()).getFullYear();
-  var lastYear = currentYear - 1;
-  addYear(currentYear);
-  addYear(lastYear);
-  function addYear(year) {
-    var current = JSON.parse(fs.readFileSync(join(__dirname, 'data', 'allocations', year + '.json')).toString());
-    Object.keys(current).forEach(function (roomid) {
-      allocations.push({
-        year: year,
-        roomid: roomid,
-        crsid: current[roomid]
-      });
-    });
-  }
-}
+app.use(function (req, res, next) {
+  store.ready(next);
+});
 
 app.use(express.static(join(__dirname, 'static'), {maxAge: process.env.NODE_ENV === 'production' ? (5 * 60 * 1000) : 0}));
 var transformed = transform(join(__dirname, 'client'))
@@ -100,32 +78,31 @@ app.get('/data/navigation', function (req, res) {
 
 
 app.get('/data/markdown/:id?', function (req, res) {
-  var path = join(__dirname, 'data', 'markdown', (req.params.id || 'home') + '.md');
-  fs.stat(path, function (err) {
+  store.markdown.path(req.params.id, function (err, path) {
     if (err) res.send('');
     else res.sendfile(path);
   })
 });
 app.post('/data/markdown/:id?', function (req, res, next) {
-  if (!req.user) return res.send(403);
-  var path = join(__dirname, 'data', 'markdown', (req.params.id || 'home') + '.md');
-  fs.writeFile(path, req.body.content, function (err) {
+  store.markdown.update(req.params.id, req.body.content, function (err) {
     if (err) return next(err);
-    s3Client.putFile(join(__dirname, 'data', 'markdown', (req.params.id || 'home') + '.md'),
-      'markdown/' + (req.params.id || 'home') + '.md', uploaded);
-  });
-  function uploaded(err, result) {
-    if (err) return next(err);
-    if (result && result.statusCode && result.statusCode != 200)
-      return next(new Error('server response code ' + result.statusCode));
-    res.send('"updated"');
-  }
+    else res.send('"updated"');
+  })
 });
 
 app.post('/data/allocations', function (req, res, next) {
   if (!req.user || !req.user.isAdmin) return res.send(403);
-  updateAllocation(req.body.year, req.body.roomid, req.body.crsid, function (err) {
+  store.allocations.set(req.body.year, req.body.roomid, req.body.crsid, function (err) {
     if (err) return next(err);
+    io.sockets.in('authenticated').emit('message', {
+      allocations: [
+        {
+          year: year,
+          roomid: roomid,
+          crsid: crsid
+        }
+      ]
+    });
     res.send('"updated"');
   })
 });
@@ -177,64 +154,11 @@ io.sockets.on('connection', function (socket) {
     if (key === "3B3FDE2F8E2C46D0B222643015851A22") {
       socket.join('authenticated');
       callback({
-        allocations: allocations
+        allocations: store.allocations.list.current
       });
     }
   });
   socket.emit('authRequired');
 });
-
-function updateAllocation(year, roomid, crsid, callback) {
-  var updated = false;
-  var noop = false;
-
-  allocations.forEach(function (allocation) {
-    if (allocation.year === year && allocation.roomid === roomid) {
-      if (allocation.crsid === crsid) {
-        noop = true;
-      } else {
-        allocation.crsid = crsid;
-        updated = true;
-      }
-    }
-  });
-  if (noop) return process.nextTick(callback);
-  if (!updated) {
-    allocations.push({
-      year: year,
-      roomid: roomid,
-      crsid: crsid
-    });
-  }
-
-  var current = JSON.parse(fs.readFileSync(join(__dirname, 'data', 'allocations', year + '.json')).toString());
-  if (crsid) {
-    current[roomid] = crsid;
-  } else {
-    if (current[roomid]) 
-      delete current[roomid];
-  }
-  fs.writeFileSync(join(__dirname, 'data', 'allocations', year + '.json'), JSON.stringify(current, null, 2));
-  if (s3Client) {
-    s3Client.putFile(join(__dirname, 'data', 'allocations', year + '.json'), 'allocations/' + year + '.json', uploaded);
-  } else {
-    process.nextTick(uploaded);
-  }
-  function uploaded(err, res) {
-    if (err) return callback(err);
-    if (res && res.statusCode && res.statusCode != 200)
-      return callback(new Error('server response code ' + res.statusCode));
-    io.sockets.in('authenticated').emit('message', {
-      allocations: [
-        {
-          year: year,
-          roomid: roomid,
-          crsid: crsid
-        }
-      ]
-    });
-    callback();
-  }
-}
 
 server.listen(3000);

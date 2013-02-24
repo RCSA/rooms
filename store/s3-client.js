@@ -1,5 +1,5 @@
 var knox = require('knox');
-var settings = require('./settings');
+var settings = require('../settings');
 
 module.exports = createClient;
 function createClient() {

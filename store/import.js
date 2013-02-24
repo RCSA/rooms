@@ -4,54 +4,57 @@ var read = require('fs').readFileSync;
 var mkdirp = require('mkdirp');
 var request = require('request');
 var s3Client = require('./s3-client');
+var mongoClient = require('./mongo-client');
+var navItemOrder = require('../client/helpers/navigation-item-order');
 
-var knox = require('knox');
+var dataDir = join(__dirname, '..', 'data');
 
-module.exports = importDataFromDrupal;
-function importDataFromDrupal(settings) {
-  var client = s3Client(settings);
+importDataFromDrupal();
+
+function importDataFromDrupal() {
+  var client = s3Client();
+  var db = mongoClient();
 
   request('http://www.rcsa.co.uk/rooms/data/stream?nodekey=3B3FDE2F8E2C46D0B222643015851A22', 
     function (err, res, body) {
       var allocations = JSON.parse(body.toString()).allocations;
       var allocationsOutput = {};
-      mkdirp.sync(join(__dirname, 'data', 'allocations'));
+      mkdirp.sync(join(dataDir, 'allocations'));
+      var remaining = allocations.length;
       allocations.forEach(function (allocation) {
         if (allocation.crsid) {
-          allocationsOutput[allocation.year] = allocationsOutput[allocation.year] || {};
-          allocationsOutput[allocation.year][allocation.roomid] = allocation.crsid.replace(/\t/g, ' ');
+            var update = {};
+            update['allocations.' + allocation.roomid] = allocation.crsid;
+            db.allocations.update({year: +allocation.year}, {$set: update}, 
+              {upsert: true}, function (err) {
+                if (err) throw err;
+                console.log('set ' + allocation.year + ' ' + allocation.roomid + ' = ' + allocation.crsid);
+                if (0 === --remaining) return db.close();
+              });
         }
       });
-      Object.keys(allocationsOutput)
-        .forEach(function (year) {
-          write(join(__dirname, 'data', 'allocations', year + '.json'),
-            JSON.stringify(allocationsOutput[year], null, 2));
-          upload(join('allocations', year + '.json'))
-        });
     });
+
 
   request('http://www.rcsa.co.uk/rooms/data/navigation', 
     function (err, res, body) {
-      mkdirp.sync(join(__dirname, 'data'));
+      mkdirp.sync(dataDir);
       var navigation = JSON.parse(body.toString()).map(cleanSpec)
-        .sort(require('./client/helpers/navigation-item-order'))
-        .filter(function (item) {
-          return item.id != 'navigationTableEdit';
-        });
-      write(join(__dirname, 'data', 'navigation.json'),
+        .sort(navItemOrder);
+      write(join(dataDir, 'navigation.json'),
         '[\n' + navigation.map(JSON.stringify).join(',\n').replace(/^/gm, '  ') + '\n]');
       upload('navigation.json');
       markdown();
     });
 
   function markdown() {
-    mkdirp.sync(join(__dirname, 'data', 'markdown'));
-    var navigation = JSON.parse(read(join(__dirname, 'data', 'navigation.json')).toString());
+    mkdirp.sync(join(dataDir, 'markdown'));
+    var navigation = JSON.parse(read(join(dataDir, 'navigation.json')).toString());
     navigation.forEach(function (item) {
       request('http://www.rcsa.co.uk/rooms/data/markdown?id=' + item.id, function (err, res, body) {
         if (body) body = JSON.parse(body.toString());
         if (body) {
-          write(join(__dirname, 'data', 'markdown', (item.id || 'home') + '.md'), body);
+          write(join(dataDir, 'markdown', (item.id || 'home') + '.md'), body);
           upload(join('markdown', (item.id || 'home') + '.md'));
         }
       });
@@ -60,18 +63,19 @@ function importDataFromDrupal(settings) {
 
   function cleanSpec(spec) {
     var i;
-    var props = ['bathroomsharing', 'rentband', 'floor', 'isgardenfacing'];
+    var props = ['bathroomsharing', 'rentband', 'floor', 'weight', 'isgardenfacing'];
     for (i = 0; i < props.length; i++) {
       if (spec[props[i]] === null) {
         delete spec[props[i]];
       }
     }
-    var nums = ['bathroomsharing', 'rentband', 'floor'];
+    var nums = ['bathroomsharing', 'rentband', 'floor', 'weight'];
     for (i = 0; i < nums.length; i++) {
       if (spec[nums[i]]) {
         spec[nums[i]] = parseInt(spec[nums[i]], 10);
       }
     }
+    if (spec.weight === 0) delete spec.weight;
     return spec;
   }
 
@@ -94,11 +98,11 @@ function importDataFromDrupal(settings) {
   }
 
   function upload(path) {
-    client.putFile(join(__dirname, 'data', path), path.replace(/\\/g, '/'), {}, function (err, resp) {
+    client.putFile(join(dataDir, path), path.replace(/\\/g, '/'), {}, function (err, resp) {
       if (err) {
         throw (err);
       } else if (resp.statusCode === 200) {
-
+        console.log('upload ' + path);
       } else {
         toError(resp, function (err) {
           console.log('path: %j', path);
