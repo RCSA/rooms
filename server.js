@@ -46,9 +46,9 @@ app.post('/data/allocations', function (req, res, next) {
     io.sockets.in('authenticated').emit('message', {
       allocations: [
         {
-          year: year,
-          roomid: roomid,
-          crsid: crsid
+          year: req.body.year,
+          roomid: req.body.roomid,
+          crsid: req.body.crsid
         }
       ]
     });

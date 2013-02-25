@@ -1,3 +1,4 @@
+var join = require('path').join;
 var transform = require('transform');
 var express = require('express');
 var app = module.exports = express();
@@ -15,11 +16,11 @@ var doTransform = transform(join(__dirname, 'client'))
   })
   .grep(/^component.json$/);
 if (isProduction) {
-  doTransform.statically(join(__dirname, 'static'));
+  doTransform.statically(join(__dirname, 'files'));
 } else {
   app.use(doTransform.dynamically());
 }
 
-app.use(express.static(join(__dirname, 'static'), {
+app.use(express.static(join(__dirname, 'files'), {
   maxAge: isProduction ? (10 * 60 * 1000) : 0
 }));

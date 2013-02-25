@@ -105,23 +105,23 @@ allocations.list(function (err, res) {
 allocations.set = function (year, room, name, callback) {
   var update = {};
   update['allocations.' + room] = name;
-  mongoClient.allocations.update({year: year}, {$set: update}, 
+  mongoClient.allocations.update({year: +year}, {$set: update}, 
     {upsert: true}, function (err) {
       if (err) return callback(err);
 
       //update memory cache
       var updated = false;
       allocations.list.current.forEach(function (allocation) {
-        if (allocation.year === year && allocation.roomid === roomid) {
-          allocation.crsid = crsid;
+        if (allocation.year === year && allocation.roomid === room) {
+          allocation.crsid = name;
           updated = true;
         }
       });
       if (!updated) {
         allocations.list.current.push({
           year: year,
-          roomid: roomid,
-          crsid: crsid
+          roomid: room,
+          crsid: name
         });
       }
 
