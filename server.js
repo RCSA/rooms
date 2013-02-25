@@ -56,6 +56,13 @@ app.post('/data/allocations', function (req, res, next) {
   })
 });
 
+app.get('/data/allocations/:year.json', function (req, res, next) {
+  store.allocations.get(req.params.year, function (err, result) {
+    if (err) return next(err);
+    res.json(result);
+  })
+});
+
 io.sockets.on('connection', function (socket) {
   socket.on('auth', function (key, callback) {
     if (key === "3B3FDE2F8E2C46D0B222643015851A22") {

@@ -5,7 +5,7 @@ var mkdirp = require('mkdirp');
 var request = require('request');
 var s3Client = require('./s3-client');
 var mongoClient = require('./mongo-client');
-var navItemOrder = require('../client/helpers/navigation-item-order');
+var navItemOrder = require('../static/client/helpers/navigation-item-order');
 
 var dataDir = join(__dirname, '..', 'data');
 

@@ -62,7 +62,7 @@ markdown.update = function (key, content, callback) {
 var allocations = exports.allocations = {};
 
 allocations.get = function (year, callback) {
-  mongoClient.allocations.findOne({year: year}, function (err, res) {
+  mongoClient.allocations.findOne({year: +year}, function (err, res) {
     if (err) return callback(err);
     else callback(null, (res && res.allocations) || {});
   });
