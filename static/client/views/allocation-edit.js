@@ -1,7 +1,5 @@
 ﻿var app = require('../');
 var setStatus = require('../helpers/status-display').setStatus;
-var curry = require('curry');
-var find = require('find');
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var loadMarkdown = require('../markdown/load-markdown');
@@ -10,18 +8,20 @@ var server = require('../server');
 var stream = require('../stream');
 var condition = require('to-bool-function');
 
-var selectRoomAllocation = curry(function (allocations, room) {
-    var allocation = allocations[room.id];
-    return {
-        id: room.id,
-        name: room.nameSingleLine(),
-        allocation: allocation || ""
+function selectRoomAllocation(allocations) {
+    return function (room) {
+        var allocation = allocations[room.id];
+        return {
+            id: room.id,
+            name: room.nameSingleLine(),
+            allocation: allocation || ""
+        };
     };
-});
+}
 function selectStaircaseGroups(allocations, staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
+            var staircase = Object.create(app.Navigation.filter(condition('id', staircaseID))[0]);
             staircase.rooms = staircaseGroups[staircaseID].map(selectRoomAllocation(allocations));
             return staircase;
         });

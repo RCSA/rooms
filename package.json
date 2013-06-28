@@ -4,7 +4,6 @@
   "description": "The RCSA room ballot application",
   "main": "server.js",
   "dependencies": {
-    "component-builder": "~0.6.3",
     "knox": "~0.5.3",
     "express": "~3.1.0",
     "mkdirp": "~0.3.4",
@@ -12,9 +11,11 @@
     "passport-raven": "~0.0.0",
     "request": "~2.14.0",
     "socket.io": "~0.9.13",
-    "transform": "~0.0.9",
-    "uglify-js": "~2.2.5",
-    "mongojs": "~0.7"
+    "mongojs": "~0.7",
+    "browserify-middleware": "~1.13.0",
+    "to-bool-function": "~2.0.0",
+    "group-by": "0.0.1",
+    "imsave": "~2.0.0"
   },
   "devDependencies": {},
   "scripts": {

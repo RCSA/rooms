@@ -5,9 +5,9 @@ var Markdown = require('../libraries/pagedown.js');
 var template = require('../template');
 var server = require('../server');
 
-var imgur = require('imgur');
+var imgur = require('imsave');
 var imgurAPIKey = "e0b484465d77858ebaf6b3c7c1732909";
-var upload = imgur(imgurAPIKey).upload;
+var upload = imgur(imgurAPIKey);
 
 function createDialogs() {
     $(".dialog").dialog({
@@ -75,6 +75,7 @@ function createEditor() {
                         } else  if (reason.code === 'MissingFile') {
                             alert('You didn\'t provide an image to upload');
                         } else {
+                            alert(reason.message || reason)
                             throw reason;
                         }
                     });

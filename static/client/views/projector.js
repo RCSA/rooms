@@ -1,5 +1,4 @@
 ﻿var app = require('../');
-var find = require('find');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
@@ -11,7 +10,7 @@ var homeHTML;
 function selectStaircaseGroups(staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(find(app.Navigation, condition('id', staircaseID)));
+            var staircase = Object.create(app.Navigation.filter(condition('id', staircaseID))[0]);
             staircase.rooms = staircaseGroups[staircaseID]
                 .filter(function (room) {
                     return room.rentband !== 0;

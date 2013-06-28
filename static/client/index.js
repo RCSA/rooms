@@ -3,12 +3,10 @@ var loadStaircase = require('./views/staircase');
 var loadRoom = require('./views/room');
 var projectorView = require('./views/projector');//{enter, exit}
 var allocationEdit = require('./views/allocation-edit');//{enter, exit}
-var navigationTableEdit = require('./views/navigation-table-edit');
 var editMarkdown = require('./markdown/edit-markdown');
 
 var model = require('./model');
 var navigationItemOrder = require('./helpers/navigation-item-order');
-var find = require('find');
 var loginURI = require('./helpers/status-display').uri;
 var template = require('./template');
 var Path = require('./libraries/path');
@@ -79,7 +77,7 @@ $(function () {
             } else {
                 $("#editLink").hide();
             }
-            if (auth.isAuthenticated === false && (location.hash === "#/projector/" || location.hash === "#/navigationTableEdit/" || location.hash === "#/allocationEdit/" || (/\/edit\/$/).test(location.hash))) {
+            if (auth.isAuthenticated === false && (location.hash === "#/projector/" || location.hash === "#/allocationEdit/" || (/\/edit\/$/).test(location.hash))) {
                 var uri = loginURI();
                 location.hash = "#/";
                 window.location.href = uri;
@@ -100,9 +98,7 @@ exports.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
 
     function permission(item) {
         //Display projector link because it can be used to log in.
-        if (item.id === "navigationTableEdit") {
-            return exports.authorization && exports.authorization.navigationEdit;
-        } else if (item.id === "allocationEdit") {
+        if (item.id === "allocationEdit") {
             return exports.authorization && exports.authorization.allocationsEdit;
         } else {
             return true;
@@ -124,7 +120,7 @@ function mapPaths() {
     function map(path, spec) {
         var exit = spec.exit || function () { };
         Path.map(path).to(function () {
-            var item = find(exports.Navigation, condition('id', this.params[spec.id] || spec.id))
+            var item = exports.Navigation.filter(condition('id', this.params[spec.id] || spec.id))[0]
              || spec.item;
             var parentid = this.params[spec.parentIDs] || spec.parentIDs;
             if (!parentid || (item.parentid === parentid) || 
@@ -169,14 +165,6 @@ function mapPaths() {
         id: "allocationEdit",
         enter: allocationEdit.enter,
         exit: allocationEdit.exit
-    });
-    map("#/navigationTableEdit/", {
-        id: "navigationTableEdit",
-        enter: navigationTableEdit,
-        item: {//provide backup item
-            id: "navigationTableEdit",
-            type: "special"
-        }
     });
     map("#//edit/", {
         id: "",

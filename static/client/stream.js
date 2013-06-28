@@ -1,5 +1,5 @@
 var server = require('./server');
-var Emitter = require('emitter');
+var Emitter = require('events').EventEmitter;
 
 var webSocketDomain = '';
 
