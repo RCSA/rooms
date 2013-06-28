@@ -4,7 +4,6 @@
     "ForbesLindesay/curry": "*",
     "ForbesLindesay/queue": "*",
     "ForbesLindesay/to-bool-function": "",
-    "ForbesLindesay/base64-encode": "*",
     "ForbesLindesay/imgur": "*",
     "component/find": "*",
     "component/group-by": "*",

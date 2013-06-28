@@ -19,7 +19,7 @@ app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.use(express.session({ secret: 'keyboard cat' }));
 
-app.use(require('./raven'));
+app.use(require('./raven/server.js'));
 
 app.get('/data/navigation', function (req, res) {
   res.sendfile(join(__dirname, 'data', 'navigation.json'));
