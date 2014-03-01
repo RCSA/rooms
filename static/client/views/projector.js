@@ -1,8 +1,8 @@
-﻿var app = require('../');
+var app = require('../');
 var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
-var groupBy = require('group-by');
+var groupBy = require('../helpers/group-by');
 var stream = require('../stream');
 var condition = require('to-bool-function');
 

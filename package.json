@@ -14,7 +14,6 @@
     "mongojs": "0.10.0",
     "browserify-middleware": "~2.3.0",
     "to-bool-function": "~2.0.0",
-    "group-by": "0.0.1",
     "imsave": "~2.0.0"
   },
   "devDependencies": {},

@@ -1,7 +1,7 @@
 var app = require('../');
 var loadMarkdown = require('../markdown/load-markdown');
 var template = require('../template');
-var groupBy = require('group-by');
+var groupBy = require('../helpers/group-by');
 var condition = require('to-bool-function');
 
 module.exports = function (staircase) {
