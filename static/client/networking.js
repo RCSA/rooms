@@ -1,4 +1,4 @@
-﻿var AJAX = (function () {
+var AJAX = (function () {
     "use strict";
 
     var prefix = "/rooms/";

@@ -196,7 +196,7 @@ module.exports = (function () {
         }
         emitter.on('default-year-allocation', fn);
         return function () {
-            emitter.off('default-year-allocation', fn);
+            emitter.removeListener('default-year-allocation', fn);
         };
     };
     emitter.getAllocations = function (fn) {
