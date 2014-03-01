@@ -1,6 +1,6 @@
 {
   "name": "rcsa-rooms",
-  "version": "0.0.0-31",
+  "version": "0.0.0-32",
   "description": "The RCSA room ballot application",
   "main": "server.js",
   "dependencies": {
@@ -11,7 +11,7 @@
     "passport-raven": "~0.0.0",
     "request": "~2.14.0",
     "socket.io": "~0.9.13",
-    "mongojs": "~0.7",
+    "mongojs": "0.10.0",
     "browserify-middleware": "~1.13.0",
     "to-bool-function": "~2.0.0",
     "group-by": "0.0.1",
