@@ -6,7 +6,14 @@ var app = module.exports = express();
 passport.use(new Raven({
   audience: process.env.RAVEN_AUDIENCE || 'http://localhost:3000'
 }, function (crsid, callback) {
-  callback(null, {id: crsid, isAdmin: crsid === 'meh65' || crsid === 'fpfl2' || crsid === 'dh464'});
+  callback(null, {
+    id: crsid,
+    isAdmin: crsid === 'meh65' ||
+             crsid === 'fpfl2' ||
+             crsid === 'dh464' ||
+             crsid === 'sg604' ||
+             crsid === 'rsa33'
+  });
 }));
 
 passport.serializeUser(function(user, done) {
