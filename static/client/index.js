@@ -9,7 +9,6 @@ var editMarkdown = require('./markdown/edit-markdown');
 
 var model = require('./model');
 var navigationItemOrder = require('./helpers/navigation-item-order');
-var loginURI = require('./helpers/status-display').uri;
 var template = require('./template');
 var Path = require('./libraries/path');
 var server = require('./server');

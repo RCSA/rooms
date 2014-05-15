@@ -1,5 +1,4 @@
 var app = require('../');
-var setStatus = require('../helpers/status-display').setStatus;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var loadMarkdown = require('../markdown/load-markdown');

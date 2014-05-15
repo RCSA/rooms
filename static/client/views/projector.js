@@ -1,5 +1,4 @@
 var app = require('../');
-var loginURI = require('../helpers/status-display').uri;
 var template = require('../template');
 var navigationItemOrder = require('../helpers/navigation-item-order');
 var groupBy = require('../helpers/group-by');

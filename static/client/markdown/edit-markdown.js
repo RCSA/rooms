@@ -1,6 +1,5 @@
 var app = require('../');
 var converter = require('./converter');
-var setStatus = require('../helpers/status-display').setStatus;
 var Markdown = require('../libraries/pagedown.js');
 var template = require('../template');
 var server = require('../server');
