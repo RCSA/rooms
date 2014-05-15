@@ -10,7 +10,7 @@ var homeHTML;
 function selectStaircaseGroups(staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(app.Navigation.filter(condition('id', staircaseID))[0]);
+            var staircase = Object.create(app.Navigation.filter(condition('_id', staircaseID))[0]);
             staircase.rooms = staircaseGroups[staircaseID]
                 .filter(function (room) {
                     return room.rentband !== 0;

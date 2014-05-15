@@ -18,9 +18,9 @@ app.use(express.session({ secret: 'keyboard cat' }));
 app.use(require('./raven/server.js'));
 
 app.get('/data/navigation', function (req, res, next) {
-  store.navigation.get().then(function (navigation) {
+  store.getPages().done(function (navigation) {
     res.json(navigation);
-  }).done(null, next);
+  }, next);
 });
 
 
@@ -30,7 +30,7 @@ app.get('/data/markdown/:id?', function (req, res, next) {
   }).done(null, next);
 });
 app.post('/data/markdown/:id?', function (req, res, next) {
-  store.markdown.update(req.params.id || '', req.body.content).done(function () {
+  store.updagePageBody(req.params.id || '', req.body.content).done(function () {
     res.send('"updated"');
   }, next);
 });
@@ -61,11 +61,6 @@ io.sockets.on('connection', function (socket) {
   socket.on('auth', function (key, callback) {
     if (key === "3B3FDE2F8E2C46D0B222643015851A22") {
       socket.join('authenticated');
-      store.allocations.list().then(function (allocations) {
-        callback({allocations: allocations});
-      }).done(null, function (err) {
-        console.error(err.stack || err.message);
-      });
     }
   });
   socket.emit('authRequired');

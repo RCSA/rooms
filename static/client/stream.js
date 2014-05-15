@@ -131,6 +131,7 @@ module.exports = (function () {
             defaultText: defaultText
         });
     }
+  
     var allocations = {
         allocationsThisYear: allocationYear("Unknown", 0),
         allocationsNextYear: allocationYear("Available", 1),
@@ -143,6 +144,16 @@ module.exports = (function () {
         },
         loaded: false
     };
+    server.navigation.read(function (data) {
+      data.forEach(function (room) {
+        if (room.type === 'room') {
+          var id = room._id;
+          allocations.allocationsNextYear[id] = room.allocations[allocations.allocationsNextYear.year];
+          allocations.allocationsThisYear[id] = room.allocations[allocations.allocationsThisYear.year];
+        }
+      });
+      if (state.auth) emitter.emit('allocations', allocations);
+    });
     function getAllocations(streamResult) {
         for (var i = 0; i < streamResult.allocations.length; i++) {
             var a = streamResult.allocations[i];
@@ -177,6 +188,7 @@ module.exports = (function () {
         if (raw.auth) {
             state.auth = raw.auth.isAuthenticated;
             emitter.emit('auth', raw.auth);
+            if (state.auth) emitter.emit('allocations', allocations);
         }
         if (raw.allocations) {
             allocations.loaded = true;

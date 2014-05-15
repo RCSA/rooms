@@ -1,4 +1,4 @@
-﻿var app = require('./');
+var app = require('./');
 
 var floorDescription = (function () {
     var floors = [
@@ -30,14 +30,14 @@ function url() {
     if (this.parentid !== "" && this.parentid !== "Root") {
         URL += this.parentid + "/";
     }
-    if (this.id !== "") {
-        URL += this.id + "/";
+    if (this._id !== "") {
+        URL += this._id + "/";
     }
     return URL;
 }
 function selected() {
-    return (this.parentid === "Root" && app.SelectedStaircaseID === this.id) ||
-                (this.parentid === app.SelectedStaircaseID && app.SelectedRoomID === this.id);
+    return (this.parentid === "Root" && app.SelectedStaircaseID === this._id) ||
+                (this.parentid === app.SelectedStaircaseID && app.SelectedRoomID === this._id);
 }
 function bathroom() {
     switch (this.bathroomsharing) {
@@ -55,7 +55,7 @@ function gardenFacing() {
         "unknown");
 }
 function allocation() {
-    return app.allocationsNextYear[this.id] || "";
+    return app.allocationsNextYear[this._id] || "";
 }
 function nameSingleLine() {
     return this.name.replace(/<br\/>/g, " ");

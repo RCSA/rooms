@@ -17,24 +17,15 @@ module.exports = {
     prefix: prefix,
     markdown: {
         read: function (item, callback) {
-            var id = item.id;
-            if (markdownCache[id]) {
-                setTimeout(function () { callback(markdownCache[id]); }, 0); //never call callback imediately
-            } else {
-                $.get(prefix + 'data/markdown/' + id, function (result) {
-                    function done(result) {
-                        markdownCache[id] = result;
-                        callback(result);
-                    }
-                    if (result) {
-                        done(result);
-                    } else {
-                        var u = "===============================================";
-                        done(item.name + "\n" + ((item.name && u.substr(0, item.name.length)) || u.substr(0, id.length)) +
-                                    "\n\nThere is no description for this " + item.type + ", why not consider adding one?");
-                    }
-                });
-            }
+            setTimeout(function () {
+              if (item.body) {
+                callback(item.body);
+              } else {
+                var u = "===============================================";
+                callback(item.name + "\n" + ((item.name && u.substr(0, item.name.length)) || u.substr(0, id.length)) +
+                            "\n\nThere is no description for this " + item.type + ", why not consider adding one?");
+              }
+            }, 0);
         },
         update: function (id, content, callback) {
             markdownCache[id] = content;
@@ -42,17 +33,8 @@ module.exports = {
         }
     },
     navigation: {
-        create: function (spec, callback) {
-            $.post(prefix + "data/navigation", put(spec, true), callback);
-        },
         read: function (callback) {
             $.getJSON(prefix + 'data/navigation', callback);
-        },
-        update: function (id, name, value, success) {
-            $.post(prefix + 'data/navigation', put({ id: id, name: name, value: value }, false), success);
-        },
-        del: function (id, success) {
-            $.post(prefix + 'data/navigation', del({ id: id }), success);
         }
     },
     allocation: {
