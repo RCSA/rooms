@@ -96,7 +96,7 @@ module.exports = function (item) {
             var content = form.content.value;
             if (content !== md) {
                 setStatus("Saving description");
-                server.markdown.update(item.id, content, function () {
+                server.markdown.update(item._id, content, function () {
                     history.go(-1);
                     setStatus("Description saved", 2000);
                 });

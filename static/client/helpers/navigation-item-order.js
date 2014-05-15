@@ -1,4 +1,4 @@
-﻿function compareText(a, b) {
+function compareText(a, b) {
     if (a > b) {
         return 1;
     } else if (a < b) {
@@ -35,12 +35,12 @@ function floor(a, b) {
 }
 var numbers = /[0-9]+/g;
 function itemID(a, b) {
-    var aNum = a.id.match(numbers);
-    var bNum = b.id.match(numbers);
+    var aNum = a._id.match(numbers);
+    var bNum = b._id.match(numbers);
     if (aNum && bNum && aNum.length > 0 && bNum.length > 0) {
-        return compareNumber(parseInt(aNum[0], 10), parseInt(bNum[0], 10)) || (compareNumber(a.id.length, b.id.length) || compareText(a.id, b.id));
+        return compareNumber(parseInt(aNum[0], 10), parseInt(bNum[0], 10)) || (compareNumber(a._id.length, b._id.length) || compareText(a._id, b._id));
     }
-    return compareText(a.id, b.id);
+    return compareText(a._id, b._id);
 }
 
 function orderCascade() {

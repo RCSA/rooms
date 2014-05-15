@@ -8,7 +8,7 @@ module.exports = function (staircase) {
     loadMarkdown(staircase);
 
     var rooms = app.Navigation
-      .filter(condition('parentid', staircase.id))
+      .filter(condition('parentid', staircase._id))
       .filter(condition('type', 'room'));
 
     var floors = toFloorsArray(groupBy(rooms, 'floor'));

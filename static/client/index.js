@@ -1,3 +1,5 @@
+'use strict';
+
 var staticPage = require('./views/static-page');
 var loadStaircase = require('./views/staircase');
 var loadRoom = require('./views/room');
@@ -98,7 +100,7 @@ exports.reloadNavigation = function (SelectedStaircaseID, SelectedRoomID) {
 
     function permission(item) {
         //Display projector link because it can be used to log in.
-        if (item.id === "allocationEdit") {
+        if (item._id === "allocationEdit") {
             return exports.authorization && exports.authorization.allocationsEdit;
         } else {
             return true;
@@ -120,7 +122,7 @@ function mapPaths() {
     function map(path, spec) {
         var exit = spec.exit || function () { };
         Path.map(path).to(function () {
-            var item = exports.Navigation.filter(condition('id', this.params[spec.id] || spec.id))[0]
+            var item = exports.Navigation.filter(condition('_id', this.params[spec.id] || spec.id))[0]
              || spec.item;
             var parentid = this.params[spec.parentIDs] || spec.parentIDs;
             if (!parentid || (item.parentid === parentid) || 
@@ -133,9 +135,9 @@ function mapPaths() {
         if (item) {
             if (exports.checkAuth(item) !== false) {
                 if (item.parentid === "Root") {
-                    exports.reloadNavigation(item.id);
+                    exports.reloadNavigation(item._id);
                 } else {
-                    exports.reloadNavigation(item.parentid, item.id);
+                    exports.reloadNavigation(item.parentid, item._id);
                 }
                 if (edit) {
                     editMarkdown(item);

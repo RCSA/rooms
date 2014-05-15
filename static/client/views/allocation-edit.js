@@ -10,9 +10,9 @@ var condition = require('to-bool-function');
 
 function selectRoomAllocation(allocations) {
     return function (room) {
-        var allocation = allocations[room.id];
+        var allocation = allocations[room._id];
         return {
-            id: room.id,
+            id: room._id,
             name: room.nameSingleLine(),
             allocation: allocation || ""
         };
@@ -21,7 +21,7 @@ function selectRoomAllocation(allocations) {
 function selectStaircaseGroups(allocations, staircaseGroups) {
     return Object.keys(staircaseGroups)
         .map(function (staircaseID) {
-            var staircase = Object.create(app.Navigation.filter(condition('id', staircaseID))[0]);
+            var staircase = Object.create(app.Navigation.filter(condition('_id', staircaseID))[0]);
             staircase.rooms = staircaseGroups[staircaseID].map(selectRoomAllocation(allocations));
             return staircase;
         });
