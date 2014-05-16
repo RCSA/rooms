@@ -21,10 +21,16 @@ else
         )= page.getName()
     #rooms.column.nav
       each page in application.secondLevelPages()
-        a(
-          href=page.getHref()
-          class=application.isSelected(page) ? 'Selected' : false
-        )= page.getName()
+        if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
+          a(
+            href='/raven/login/' + encodeURIComponent(page.getHref())
+            class=application.isSelected(page) ? 'Selected' : false
+          )= page.getName()
+        else if !page.requiresAdmin() || application.user.isAdmin
+          a(
+            href=page.getHref()
+            class=application.isSelected(page) ? 'Selected' : false
+          )= page.getName()
     #main.column
       #markdown
         if !application.editMode
@@ -64,3 +70,8 @@ else
               tr
                 th Next Year's Allocation
                 td= application.currentPage.getNextYearAllocation()
+          if application.user.isAdmin && !application.editingAllocations
+            a(href="?edit-allocations=true") Edit Allocations
+        = ' '
+        if application.user.isAdmin && !application.editingDetails
+          a(href="?edit-details=true") Edit Details

@@ -17,7 +17,9 @@ page('*', function (ctx, next) {
     return next();
   }
   application.currentPage = matches[0];
-  application.editMode = ctx.querystring.indexOf('edit') !== -1;
+  application.editMode = ctx.querystring.indexOf('edit=true') !== -1;
+  application.editingAllocations = ctx.querystring.indexOf('edit-allocations=true') !== -1;
+  application.editingDetails = ctx.querystring.indexOf('edit-details=true') !== -1;
   
   if (application.editMode && !application.user.isAuthenticated) {
     return next();

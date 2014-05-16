@@ -118,3 +118,10 @@ Page.prototype.getNextYearAllocation = function () {
   if (now.getMonth() > 6) year++;
   return this.data.allocations[year];
 };
+
+Page.prototype.requiresLogin = function () {
+  return this.requiresAdmin() || ['/projector'].indexOf(this.data._id) !== -1;
+};
+Page.prototype.requiresAdmin = function () {
+  return ['/allocationEdit'].indexOf(this.data._id) !== -1;
+};

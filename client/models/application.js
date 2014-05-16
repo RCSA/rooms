@@ -6,6 +6,8 @@ function Application() {
   this.pages = [];
   this.currentPage = null;
   this.editMode = false;
+  this.editingAllocations = false;
+  this.editingDetails = false;
   this.user = {isAuthenticated: false, isAdmin: false};
 }
 Application.prototype.topLevelPages = function () {

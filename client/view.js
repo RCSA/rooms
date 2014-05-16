@@ -83,12 +83,24 @@ tags.push(React.DOM.div(
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var page = $$obj[$index];
 
+if ( !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated)
+{
+tags.push(React.DOM.a(
+{"href": '/raven/login/' + encodeURIComponent(page.getHref()),"className": jade.joinClasses([application.isSelected(page) ? 'Selected' : false])}
+, (function () { var tags = [];
+tags.push(page.getName())
+return tags;}())
+))
+}
+else if ( !page.requiresAdmin() || application.user.isAdmin)
+{
 tags.push(React.DOM.a(
 {"href": page.getHref(),"className": jade.joinClasses([application.isSelected(page) ? 'Selected' : false])}
 , (function () { var tags = [];
 tags.push(page.getName())
 return tags;}())
 ))
+}
   }
 }).call(this);
 
@@ -265,6 +277,25 @@ return tags;}())
 return tags;}())
 ))
 }
+return tags;}())
+))
+if ( application.user.isAdmin && !application.editingAllocations)
+{
+tags.push(React.DOM.a(
+{"href": "?edit-allocations=true"}
+, (function () { var tags = [];
+tags.push("Edit Allocations")
+return tags;}())
+))
+}
+}
+tags.push(' ')
+if ( application.user.isAdmin && !application.editingDetails)
+{
+tags.push(React.DOM.a(
+{"href": "?edit-details=true"}
+, (function () { var tags = [];
+tags.push("Edit Details")
 return tags;}())
 ))
 }
