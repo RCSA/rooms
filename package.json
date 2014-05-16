@@ -1,6 +1,6 @@
 {
   "name": "rcsa-rooms",
-  "version": "0.0.0-37",
+  "version": "0.0.0-38",
   "description": "The RCSA room ballot application",
   "main": "server.js",
   "dependencies": {
