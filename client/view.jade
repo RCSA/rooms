@@ -1,0 +1,66 @@
+.header
+  input#isThisYears(type="checkbox")
+  | Show this year's room allocations instead of next years.
+  span(style={float: 'right'})
+    | Created by Forbes Lindesay for the RCSA
+  a(href="/")
+    .rcsalogo
+  .shortcutLinks
+    a(href="/") Home
+    = ' | '
+    a(href="/projector") Projector
+if application.loading
+  | Loading...
+else
+  #colmask.colmask
+    #staircases.column.nav
+      each page in application.topLevelPages()
+        a(
+          href=page.getHref()
+          class=application.isSelected(page) ? 'Selected' : false
+        )= page.getName()
+    #rooms.column.nav
+      each page in application.secondLevelPages()
+        a(
+          href=page.getHref()
+          class=application.isSelected(page) ? 'Selected' : false
+        )= page.getName()
+    #main.column
+      #markdown
+        if !application.editMode
+          if application.currentPage.data._id === '/'
+            img(src="http://i.imgur.com/hPFV0.png" alt="RCSA Logo" style={float: 'right'})
+          else
+            h1= application.currentPage.getName()
+          != application.currentPage.getHtmlBody()
+          if application.user.isAuthenticated
+            if application.currentPage.data.type === 'room' || application.currentPage.data.type === 'staircase'
+              a(href="?edit=true") Edit Page
+            else if application.user.isAdmin
+              a(href="?edit=true") Edit Page
+        else
+          if application.currentPage.data._id !== '/'
+            h1= application.currentPage.getName()
+          textarea(onChange=application.currentPage.setMarkdownBody.bind(application.currentPage))= application.currentPage.getMarkdownBody()
+          br
+          button(onClick=application.currentPage.saveMarkdownBody.bind(application.currentPage)) Save
+      #templated
+        if application.currentPage.isRoom()
+          table.horizontalTable
+            if application.currentPage.getBathroomDescription()
+              tr
+                th Bathroom
+                td= application.currentPage.getBathroomDescription()
+            tr
+              th Rent Band
+              td= application.currentPage.getRentBandDescription()
+            tr
+              th Floor
+              td= application.currentPage.getFloorDescription()
+            if application.user.isAuthenticated
+              tr
+                th Current Allocation
+                td= application.currentPage.getCurrentYearAllocation()
+              tr
+                th Next Year's Allocation
+                td= application.currentPage.getNextYearAllocation()
