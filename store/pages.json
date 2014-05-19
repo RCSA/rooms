@@ -2218,22 +2218,6 @@
     "type": "room"
   },
   {
-    "_id": "/A/A1",
-    "allocations": {
-      "2012": "Nicholas Tomlinson",
-      "2013": "Avish Patel",
-      "2014": "(fresher)",
-      "undefined": null
-    },
-    "bathroomsharing": 1,
-    "body": "Basement room at the end of college. The room can be a little dark/cold due to the tree outside the window.",
-    "floor": -1,
-    "name": "A1",
-    "parentid": "/A",
-    "rentband": 3,
-    "type": "room"
-  },
-  {
     "_id": "/E/E19",
     "allocations": {
       "2012": "Heather Keenan",
@@ -6256,5 +6240,22 @@
     "parentid": "Root",
     "type": "staircase",
     "weight": 4
+  },
+  {
+    "_id": "/A/A1",
+    "allocations": {
+      "2012": "Nicholas Tomlinson",
+      "2013": "Avish Patel",
+      "2014": "(fresher)",
+      "undefined": null
+    },
+    "bathroomsharing": 1,
+    "body": "Basement room at the end of college. The room can be a little dark/cold due to the tree outside the window.",
+    "facing": "garden",
+    "floor": -1,
+    "name": "A1",
+    "parentid": "/A",
+    "rentband": 3,
+    "type": "room"
   }
 ]
