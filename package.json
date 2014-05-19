@@ -1,6 +1,6 @@
 {
   "name": "rcsa-rooms",
-  "version": "0.0.0-38",
+  "version": "0.0.0-41",
   "description": "The RCSA room ballot application",
   "main": "server.js",
   "dependencies": {
@@ -17,7 +17,8 @@
     "envify": "~1.2.1",
     "react": "~0.10.0",
     "constantinople": "~2.0.0",
-    "react-jade": "0.0.6"
+    "react-jade": "0.0.6",
+    "promise": "~5.0.0"
   },
   "devDependencies": {},
   "scripts": {
