@@ -32,7 +32,7 @@ else
       #markdown
         if !application.editMode
           if application.currentPage.data._id === '/'
-            img(src="http://i.imgur.com/hPFV0.png" alt="RCSA Logo" style={float: 'right'})
+            img.hidden-xs.hidden-sm(src="http://i.imgur.com/hPFV0.png" alt="RCSA Logo" style={float: 'right'})
           else
             h1= application.currentPage.getName()
           != application.currentPage.getHtmlBody()
@@ -44,11 +44,18 @@ else
         else
           if application.currentPage.data._id !== '/'
             h1= application.currentPage.getName()
-          textarea(onChange=application.currentPage.setMarkdownBody.bind(application.currentPage))= application.currentPage.getMarkdownBody()
-          br
-          button(onClick=application.currentPage.saveMarkdownBody.bind(application.currentPage)) Save
+          form(role='form')
+            .form-group
+              label Page Body
+              textarea.form-control(onChange=application.currentPage.setMarkdownBody.bind(application.currentPage) value= application.currentPage.getMarkdownBody())
+            .form-group
+              label Preview
+              .form-control-static
+              != application.currentPage.getHtmlBody()
+          button.btn.btn-primary(onClick=application.currentPage.saveMarkdownBody.bind(application.currentPage)) Save
+          button.btn.btn-link(onClick=application.currentPage.cancelMarkdownBodyEdit.bind(application.currentPage)) cancel
       #templated
-        if application.currentPage.isRoom()
+        if application.currentPage.isRoom() && !(application.user.isAdmin && window)
           dl.dl-horizontal
             if application.currentPage.getBathroomDescription()
               dt Bathroom
@@ -57,12 +64,76 @@ else
             dd= application.currentPage.getRentBandDescription()
             dt Floor
             dd= application.currentPage.getFloorDescription()
-            if application.user.isAuthenticated
+            if application.currentPage.data.facing !== 'unknown'
+              dt Facing
+              dd= application.currentPage.data.facing
+            if application.user.isAuthenticated && application.currentPage.data.rentband !== 0
               dt= application.getCurrentYear() + ' - ' + (application.getCurrentYear() + 1)
-              dd= application.currentPage.getCurrentYearAllocation()
+              dd= application.currentPage.getCurrentYearAllocation() || 'Unknown'
               dt= application.getNextYear() + ' - ' + (application.getNextYear() + 1)
-              dd= application.currentPage.getNextYearAllocation()
-          if application.user.isAdmin && window
+              dd= application.currentPage.getNextYearAllocation() || 'Available'
+        if application.user.isAdmin && window && ['/', '/projector'].indexOf(application.currentPage.getHref()) === -1
+          h2 Edit Page Details
+          form.form-horizontal(role="form")
+            .form-group
+              label.col-sm-2.control-label ID
+              .col-sm-10
+                p.form-control-static= application.currentPage.getHref()
+            .form-group
+              label.col-sm-2.control-label Name
+              .col-sm-10
+                input.form-control(
+                  type="text"
+                  value=application.currentPage.data.name
+                  onChange=application.currentPage.setProperty.bind(application.currentPage, 'name'))
+            if application.currentPage.isRoom()
+              .form-group
+                label.col-sm-2.control-label Bathroom
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.bathroomsharing
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'bathroomsharing'))
+                    option(value=0) Unknown
+                    option(value=1) Ensuite
+                    - for (var i = 2; i < 5; i++)
+                      option(value=i)= "Shared between " + i + " people"
+              .form-group
+                label.col-sm-2.control-label Rent Band
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.rentband
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'rentband'))
+                    each band, i in ["Unavailable to Students", "Value", "Standard", "Standard Plus", "Best"]
+                      option(value=i)= band
+              .form-group
+                label.col-sm-2.control-label Floor
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.floor
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'floor'))
+                    option(value=-1) Basement
+                    option(value=0) Ground Floor
+                    option(value=1) First Floor
+                    option(value=2) Second Floor
+                    option(value=3) Third Floor
+                    option(value=4) Fourth Floor
+                    option(value=5) Fith Floor
+                    option(value=6) Sixth Floor
+              .form-group
+                label.col-sm-2.control-label Facing
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.facing
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'facing'))
+                    option(value='unknown') Unknown / Not Applicable
+                    option(value='garden') Garden
+                    option(value='courtyard') Courtyard
+
+          if application.currentPage.isRoom() && application.currentPage.data.rentband !== 0
             h2 Edit Allocations
             form.form-horizontal(role="form")
               - for (var year = 2012; year <= application.getNextYear(); year++)
@@ -73,9 +144,6 @@ else
                       type="text"
                       value=application.currentPage.data.allocations[year]
                       onChange=application.currentPage.setAllocation.bind(application.currentPage, year))
-        = ' '
-        if application.user.isAdmin && !application.editingDetails && window
-          a(href="?edit-details=true") Edit Details
   .row
     if application.currentPage.isTopLevel()
       .col-xs-12

@@ -127,11 +127,7 @@ nav a, .nav a {
 }
 
 textarea {
-  max-width: 700px;
-  min-width: 500px;
   min-height: 400px;
-  height: auto;
-  margin: 30px;
 }
 
 .validationError {

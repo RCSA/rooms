@@ -19,9 +19,13 @@ page('*', function (ctx, next) {
   if (matches.length !== 1) {
     return next();
   }
+  var editMode = ctx.querystring.indexOf('edit=true') !== -1;
+  if (application.editMode && !editMode && application.currentPage && application.currentPage.data.oldBody) {
+    application.currentPage.data.body = application.currentPage.data.oldBody;
+  }
+
   application.currentPage = matches[0];
-  application.editMode = ctx.querystring.indexOf('edit=true') !== -1;
-  application.editingDetails = ctx.querystring.indexOf('edit-details=true') !== -1;
+  application.editMode = editMode;
   
   if (application.editMode && !application.user.isAuthenticated) {
     return next();

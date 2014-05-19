@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 var browserify = require('browserify-middleware');
 var express = require('express');
 var store = require('./store');
@@ -32,6 +33,35 @@ app.post('/data/pages/body', function (req, res, next) {
   var id = req.body.id;
   var body = req.body.body;
   store.updatePageBody(id, body, req.user.isAdmin).done(function (result) {
+    res.send(200);
+  }, next);
+});
+app.post('/data/pages/allocation', function (req, res, next) {
+  if (!req.isAuthenticated() || !req.user.isAdmin) {
+    res.send(403);
+  }
+  var id = req.body.id;
+  var year = req.body.year;
+  var allocation = req.body.allocation;
+  store.updatePageAllocation(id, year, allocation).done(function (result) {
+    res.send(200);
+  }, next);
+});
+app.post('/data/pages/property', function (req, res, next) {
+  if (!req.isAuthenticated() || !req.user.isAdmin) {
+    res.send(403);
+  }
+  var id = req.body.id;
+  var property = req.body.property;
+  var value = req.body.value;
+  assert([
+    'name',
+    'bathroomsharing',
+    'rentband',
+    'floor',
+    'facing'
+  ].indexOf(property) !== -1);
+  store.updatePageProperty(id, property, value).done(function (result) {
     res.send(200);
   }, next);
 });

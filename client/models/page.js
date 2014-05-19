@@ -15,6 +15,8 @@ FLOORS[-1] = "Basement";
 module.exports = Page;
 function Page(data){
   this.data = data;
+  this.data.facing = this.data.facing || 'unknown';
+  this.posts = {};
 }
 
 Page.prototype.compareTo = function (other) {
@@ -86,11 +88,48 @@ Page.prototype.saveMarkdownBody = function () {
     alert('There was an error saving this page');
   });
 };
+Page.prototype.cancelMarkdownBodyEdit = function () {
+  // leaving edit mode automatically cancels edits
+  page(location.pathname);
+};
 Page.prototype.setAllocation = function (year, e) {
   this.data.allocations[year] = e.target.value;
   page.show(location.pathname + location.search);
+  clearTimeout(this.posts['allocations.' + year]);
+  this.posts['allocations.' + year] = setTimeout(function () {
+    request('/data/pages/allocation', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({id: this.data._id, year: year, allocation: this.data.allocations[year]})
+    }).then(function (res) {
+      //check for success
+      res.getBody();
+    }).done(function () {
+      // on success
+    }.bind(this), function (err) {
+      alert('There was an error saving this allocation');
+    });
+  }.bind(this), 200);
 };
-
+Page.prototype.setProperty = function (name, e) {
+  this.data[name] = typeof this.data[name] === 'number' ? +e.target.value : e.target.value;
+  page.show(location.pathname + location.search);
+  clearTimeout(this.posts[name]);
+  this.posts[name] = setTimeout(function () {
+    request('/data/pages/property', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({id: this.data._id, property: name, value: this.data[name]})
+    }).then(function (res) {
+      //check for success
+      res.getBody();
+    }).done(function () {
+      // on success
+    }.bind(this), function (err) {
+      alert('There was an error saving this property');
+    });
+  }.bind(this), 200);
+};
 
 Page.prototype.isRoom = function () {
   return this.data.type === 'room';

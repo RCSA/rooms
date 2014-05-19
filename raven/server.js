@@ -5,7 +5,7 @@ var app = module.exports = express();
 
 if (process.env.SKIP_AUTH === 'TRUE') {
   app.use(function (req, res, next) {
-    req.user = {id: 'fpfl2', isAdmin: true};
+    req.user = {id: 'fpfl2', isAdmin: process.env.SKIP_AS_ADMIN === 'TRUE'};
     next();
   });
 } else {

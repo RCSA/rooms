@@ -38,7 +38,7 @@
   },
   {
     "_id": "/",
-    "body": "Robinson Rooms\n==============\n\nThis is the website which will be used to manage the RCSA room ballot.\n\nIf you're a current student not already logged on I recommend you start by logging in so you can view allocations for all rooms.  These will then be updated in real time during room ballots etc.  To log in, simply click the link at the top left of the browser window.\n\nOnce logged in, you can use the check box at the top to choose between viewing the current allocations (to find out what room your friend's in or remember the name of the guy who lives next door) and next years allocations (to help you choose a room during that stressful balloting period)\n\nYou can use the gold bar to navigate between the staircases and houses and the light yellow bar to see more detailed information about a specific room.\n\nTo view all the rooms and their availability select Home from the first menu then Projector from the second menu\n\nYou can edit the descriptions of rooms and staircases and I encourage you to add lots of helpful information/reviews.  It would especially be great to see people adding photos for their rooms.  Make sure you click save when you're done or you will lose all your work.\n\nThe editing is done using markdown syntax which is fairly simple (just look at other rooms for examples and use the buttons at the top of the editor to help you).  If you need help, we use the same syntax as [Stack Overflow][stackoverflow]\n\n  [rcsalogo]: http://i.imgur.com/hPFV0.png\n  [stackoverflow]: http://stackoverflow.com/editing-help",
+    "body": "This is the website which will be used to manage the RCSA room ballot.\n\nIf you're a current student not already logged on I recommend you start by logging in so you can view allocations for all rooms.  These will then be updated in real time during room ballots etc.  To log in, simply click the link at the top left of the browser window.\n\nOnce logged in, you can use the check box at the top to choose between viewing the current allocations (to find out what room your friend's in or remember the name of the guy who lives next door) and next years allocations (to help you choose a room during that stressful balloting period)\n\nYou can use the gold bar to navigate between the staircases and houses and the light yellow bar to see more detailed information about a specific room.\n\nTo view all the rooms and their availability select Home from the first menu then Projector from the second menu\n\nYou can edit the descriptions of rooms and staircases and I encourage you to add lots of helpful information/reviews.  It would especially be great to see people adding photos for their rooms.  Make sure you click save when you're done or you will lose all your work.\n\nThe editing is done using markdown syntax which is fairly simple (just look at other rooms for examples).\n",
     "name": "Home",
     "parentid": "Root",
     "type": "page"
@@ -2222,7 +2222,8 @@
     "allocations": {
       "2012": "Nicholas Tomlinson",
       "2013": "Avish Patel",
-      "2014": "(fresher)"
+      "2014": "(fresher)",
+      "undefined": null
     },
     "bathroomsharing": 1,
     "body": "Basement room at the end of college. The room can be a little dark/cold due to the tree outside the window.",
