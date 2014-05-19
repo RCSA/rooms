@@ -144,12 +144,12 @@ else
                       type="text"
                       value=application.currentPage.data.allocations[year]
                       onChange=application.currentPage.setAllocation.bind(application.currentPage, year))
-  .row
+  .row.visible-xs.visible-sm
     if application.currentPage.isTopLevel()
       .col-xs-12
         if application.currentPage.getHref() === '/'
           h2 Select a Staircase
-          ul.nav.nav-pills.visible-xs.vislible-sm
+          ul.nav.nav-pills
             each page in application.topLevelPages()
               if page.getHref() !== '/'
                 li
@@ -157,7 +157,7 @@ else
           h2 Special Pages
         else
           h2 Select a Room
-        ul.nav.nav-pills.visible-xs.visible-sm
+        ul.nav.nav-pills
           each page in application.secondLevelPages()
             if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
               li
