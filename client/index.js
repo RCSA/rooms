@@ -1,11 +1,14 @@
 'use strict';
 
+var jade = require('react-jade');
 var page = require('page');
 var request = require('then-request');
 var React = require('react');
 var Application = require('./models/application.js');
 var PageModel = require('./models/page.js');
-var view = require('./view.js');
+
+
+var view = jade.compileFile(__dirname + '/view.jade');
 
 var application = new Application();
 
@@ -18,13 +21,12 @@ page('*', function (ctx, next) {
   }
   application.currentPage = matches[0];
   application.editMode = ctx.querystring.indexOf('edit=true') !== -1;
-  application.editingAllocations = ctx.querystring.indexOf('edit-allocations=true') !== -1;
   application.editingDetails = ctx.querystring.indexOf('edit-details=true') !== -1;
   
   if (application.editMode && !application.user.isAuthenticated) {
     return next();
   }
-  React.renderComponent(view(application), document.getElementById('page'));
+  React.renderComponent(view({application: application}), document.getElementById('page'));
 });
 page.start();
 
@@ -49,8 +51,6 @@ function gotData(str) {
   application.loading = false;
   application.pages = JSON.parse(str).map(function (page) {
     return new PageModel(page);
-  }).sort(function (a, b) {
-    return a.compareTo(b);
   });
   update();
 }

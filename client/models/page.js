@@ -57,7 +57,7 @@ Page.prototype.getName = function () {
   return this.data.name;
 };
 Page.prototype.getHtmlBody = function () {
-  return marked(this.data.body);
+  return this.data.body ? marked(this.data.body) : 'This page has no content.';
 };
 Page.prototype.getMarkdownBody = function () {
   return this.data.body;
@@ -65,6 +65,7 @@ Page.prototype.getMarkdownBody = function () {
 Page.prototype.setMarkdownBody = function (e) {
   if (this.data.oldBody === undefined) this.data.oldBody = this.data.body || '';
   this.data.body = e.target.value;
+  page.show(location.pathname + location.search);
 };
 Page.prototype.saveMarkdownBody = function () {
   if (this.data.body === this.data.oldBody || this.data.oldBody === undefined) {
@@ -85,6 +86,11 @@ Page.prototype.saveMarkdownBody = function () {
     alert('There was an error saving this page');
   });
 };
+Page.prototype.setAllocation = function (year, e) {
+  this.data.allocations[year] = e.target.value;
+  page.show(location.pathname + location.search);
+};
+
 
 Page.prototype.isRoom = function () {
   return this.data.type === 'room';

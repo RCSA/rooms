@@ -1,37 +1,34 @@
-.header
-  input#isThisYears(type="checkbox")
-  | Show this year's room allocations instead of next years.
-  span(style={float: 'right'})
-    | Created by Forbes Lindesay for the RCSA
-  a(href="/")
-    .rcsalogo
-  .shortcutLinks
-    a(href="/") Home
-    = ' | '
-    a(href="/projector") Projector
+.title
+  h1 Robinson College Room Wiki
+
 if application.loading
   | Loading...
 else
-  #colmask.colmask
-    #staircases.column.nav
-      each page in application.topLevelPages()
-        a(
-          href=page.getHref()
-          class=application.isSelected(page) ? 'Selected' : false
-        )= page.getName()
-    #rooms.column.nav
-      each page in application.secondLevelPages()
-        if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
-          a(
-            href='/raven/login/' + encodeURIComponent(page.getHref())
-            class=application.isSelected(page) ? 'Selected' : false
-          )= page.getName()
-        else if !page.requiresAdmin() || application.user.isAdmin
-          a(
-            href=page.getHref()
-            class=application.isSelected(page) ? 'Selected' : false
-          )= page.getName()
-    #main.column
+  if application.currentPage.getHref() !== '/'
+    .row.visible-xs.visible-sm
+      .col-xs-12
+        a.btn.btn-default(href=application.currentPage.isTopLevel() ? '/' : application.currentPage.data.parentid)
+          span.glyphicon.glyphicon-chevron-left
+            if application.currentPage.isTopLevel() || application.currentPage.data.parentid === '/'
+              = ' Home'
+            else
+              = ' Staircase'
+  .row
+    .col-md-2
+      ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
+        each page in application.topLevelPages()
+          li(class=application.isSelected(page) ? 'active' : false)
+            a(href=page.getHref())= page.getName()
+    .col-md-2
+      ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
+        each page in application.secondLevelPages()
+          if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
+            li(class=application.isSelected(page) ? 'active' : false)
+              a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
+          else if !page.requiresAdmin() || application.user.isAdmin
+            li(class=application.isSelected(page) ? 'active' : false)
+              a(href=page.getHref())= page.getName()
+    .col-md-8
       #markdown
         if !application.editMode
           if application.currentPage.data._id === '/'
@@ -39,7 +36,7 @@ else
           else
             h1= application.currentPage.getName()
           != application.currentPage.getHtmlBody()
-          if application.user.isAuthenticated
+          if application.user.isAuthenticated && window
             if application.currentPage.data.type === 'room' || application.currentPage.data.type === 'staircase'
               a(href="?edit=true") Edit Page
             else if application.user.isAdmin
@@ -52,26 +49,51 @@ else
           button(onClick=application.currentPage.saveMarkdownBody.bind(application.currentPage)) Save
       #templated
         if application.currentPage.isRoom()
-          table.horizontalTable
+          dl.dl-horizontal
             if application.currentPage.getBathroomDescription()
-              tr
-                th Bathroom
-                td= application.currentPage.getBathroomDescription()
-            tr
-              th Rent Band
-              td= application.currentPage.getRentBandDescription()
-            tr
-              th Floor
-              td= application.currentPage.getFloorDescription()
+              dt Bathroom
+              dd= application.currentPage.getBathroomDescription()
+            dt Rent Band
+            dd= application.currentPage.getRentBandDescription()
+            dt Floor
+            dd= application.currentPage.getFloorDescription()
             if application.user.isAuthenticated
-              tr
-                th Current Allocation
-                td= application.currentPage.getCurrentYearAllocation()
-              tr
-                th Next Year's Allocation
-                td= application.currentPage.getNextYearAllocation()
-          if application.user.isAdmin && !application.editingAllocations
-            a(href="?edit-allocations=true") Edit Allocations
+              dt= application.getCurrentYear() + ' - ' + (application.getCurrentYear() + 1)
+              dd= application.currentPage.getCurrentYearAllocation()
+              dt= application.getNextYear() + ' - ' + (application.getNextYear() + 1)
+              dd= application.currentPage.getNextYearAllocation()
+          if application.user.isAdmin && window
+            h2 Edit Allocations
+            form.form-horizontal(role="form")
+              - for (var year = 2012; year <= application.getNextYear(); year++)
+                .form-group
+                  label.col-sm-2.control-label= year + ' - ' + (year + 1)
+                  .col-sm-10
+                    input.form-control(
+                      type="text"
+                      value=application.currentPage.data.allocations[year]
+                      onChange=application.currentPage.setAllocation.bind(application.currentPage, year))
         = ' '
-        if application.user.isAdmin && !application.editingDetails
+        if application.user.isAdmin && !application.editingDetails && window
           a(href="?edit-details=true") Edit Details
+  .row
+    if application.currentPage.isTopLevel()
+      .col-xs-12
+        if application.currentPage.getHref() === '/'
+          h2 Select a Staircase
+          ul.nav.nav-pills.visible-xs.vislible-sm
+            each page in application.topLevelPages()
+              if page.getHref() !== '/'
+                li
+                  a(href=page.getHref())= page.getName()
+          h2 Special Pages
+        else
+          h2 Select a Room
+        ul.nav.nav-pills.visible-xs.visible-sm
+          each page in application.secondLevelPages()
+            if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
+              li
+                a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
+            else if !page.requiresAdmin() || application.user.isAdmin
+              li
+                a(href=page.getHref())= page.getName()

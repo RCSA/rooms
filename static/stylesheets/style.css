@@ -7,31 +7,20 @@ body {
   background-image: url(brick.jpg);
 }
 
+.title h1 {
+  font-size: 3em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px solid #FDC107;
+}
+
 
 #page {
   background-color: white;
 }
 
-.page {
-  background-color: white;
-  margin-left: auto;
-  margin-right: auto;
-  width: 1000px;
-}
-
-.page .colmask {
-  padding-left: 300px;
-  overflow: hidden;
-}
-
-.page .colmask .column {
-  position: relative;
-  float: left;
-  padding-bottom: 20010px; /* X + padding-bottom */
-  margin-bottom: -20000px; /* X */
-}
-
-.page .header {
+.header {
   background-image: url(background2.jpg);
   background-repeat: repeat-x;
   height: 150px;
@@ -39,22 +28,22 @@ body {
   vertical-align: central;
 }
 
-.page .header .shortcutLinks {
+.header .shortcutLinks {
   color: black;
   margin-bottom: 0px;
   margin-top: 10px;
   margin-left: 10px;
 }
 
-.page .header .shortcutLinks a {
+.header .shortcutLinks a {
   color: black;
 }
 
-.page .header a {
+.header a {
   color: #FFFFFF;
 }
 
-.page .rcsalogo {
+.rcsalogo {
   background-image: url(bluemarine_logo.png);
   background-repeat: no-repeat;
   height: 85px;
@@ -190,14 +179,6 @@ h1 {
 h2 {
   color: #69F;
   font-size: 1.2em;
-}
-
-#templated a, .projector a, #markdown li > a:only-child {
-  color: black;
-  -webkit-appearance: none;
-  -webkit-border-radius: 0px;
-  border: none;
-  text-decoration: none;
 }
 
 #templated a:hover, .projector a:hover, #markdown li > a:only-child:hover {

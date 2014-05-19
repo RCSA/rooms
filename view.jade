@@ -1,0 +1,13 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    title Robinson Rooms
+    link(rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css")
+    link(rel="stylesheet" href="/stylesheets/style.css")
+  body.background
+    #page.container
+      if application
+        include client/view.jade
+    // <!-- JavaScript at the bottom for fast page loading -->
+    script(src="/build/build.js")

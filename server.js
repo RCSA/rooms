@@ -3,9 +3,10 @@
 var browserify = require('browserify-middleware');
 var express = require('express');
 var store = require('./store');
-var compileReact = require('./react-compiler.js');
 
 var app = express();
+
+app.set('views', __dirname);
 
 app.use(express.cookieParser());
 app.use(express.bodyParser());
@@ -34,23 +35,42 @@ app.post('/data/pages/body', function (req, res, next) {
     res.send(200);
   }, next);
 });
+
 app.get('/build/build.js', browserify(__dirname + '/client/index.js', {
-  transform: [require('jadeify')]
+  transform: [require('react-jade')]
 }));
-if (process.env.NODE_ENV !== 'production') {
-  app.use(function (req, res, next) {
-    compileReact();
-    next();
+
+
+var ApplicationModel = require('./client/models/application.js');
+var PageModel = require('./client/models/page.js');
+var application = new ApplicationModel();
+
+store.getPages().done(function (navigation) {
+  application.loading = false;
+  application.pages = navigation.map(function (page) {
+    return new PageModel(page);
   });
-}
+});
+
 app.use(function (req, res, next) {
   if (req.query.edit && !req.isAuthenticated()) {
     req.session.returnURI = req.uri;
     return res.redirect('/raven/login');
   }
+  application.user = {
+    isAuthenticated: req.isAuthenticated(),
+    isAdmin: req.isAuthenticated() && req.user.isAdmin
+  };
+  application.currentPage = application.pages.filter(function (page) {
+    return page.getHref() === req.path;
+  })[0];
+  if (application.currentPage) {
+    res.render('view.jade', {application: application});
+    return;
+  }
   store.getPage(req.path).done(function (page) {
     if (!page) return next();
-    res.sendfile(__dirname + '/static/index.html');
+    res.render('view.jade', {application: false});
   }, next);
 });
 app.use(express.static(__dirname + '/static', {
