@@ -1,64 +1,55 @@
 'use strict';
 
-var jade = require('react-jade');
 var page = require('page');
 var request = require('then-request');
 var React = require('react');
+var Primus = require('./primus.js');
+var collection = require('./data/collection');
 var Application = require('./models/application.js');
 var PageModel = require('./models/page.js');
 
+var spark = new Primus();
+var token = null;
 
-var view = jade.compileFile(__dirname + '/view.jade');
-
-var application = new Application();
+var pages = collection('pages', {
+  write: function (message) {
+    message.token = token;
+    spark.write(message);
+  },
+  on: spark.on.bind(spark)
+});
+var application = new Application(pages);
 
 page('*', function (ctx, next) {
-  var matches = application.pages.filter(function (page) {
-    return ctx.pathname === page.getHref();
+  application.setPathname(ctx.pathname);
+  application.setQueryString({
+    edit: ctx.querystring.indexOf('edit=true') !== -1
   });
-  if (matches.length !== 1) {
+  if (application.isLoaded() && !application.getPage()) {
     return next();
   }
-  var editMode = ctx.querystring.indexOf('edit=true') !== -1;
-  if (application.editMode && !editMode && application.currentPage && application.currentPage.data.oldBody) {
+
+  //todo: reimplement this
+  if (false && application.editMode && !editMode && application.currentPage && application.currentPage.data.oldBody) {
     application.currentPage.data.body = application.currentPage.data.oldBody;
   }
 
-  application.currentPage = matches[0];
-  application.editMode = editMode;
-  
-  if (application.editMode && !application.user.isAuthenticated) {
+  if (application.accessDenied() && !application.user.isAuthenticated) {
     return next();
   }
-  React.renderComponent(view({application: application}), document.getElementById('page'));
 });
 page.start();
 
-update();
-
-request('/data/pages').then(function (res) {
-  if (window.localStorage) {
-    window.localStorage.setItem('pages', res.getBody());
-  }
-  gotData(res.getBody());
-}).done();
 request('/data/user').then(function (res) {
-  application.user = JSON.parse(res.getBody());
-  update();
+  var user = JSON.parse(res.getBody());
+  token = user.token;
+  application.setUser(user);
 }).done();
 
-if (window.localStorage && window.localStorage.getItem('pages')) {
-  gotData(window.localStorage.getItem('pages'));
-}
 
-function gotData(str) {
-  application.loading = false;
-  application.pages = JSON.parse(str).map(function (page) {
-    return new PageModel(page);
-  });
-  update();
-}
-
+application.subscribe(update);
 function update() {
-  page.show(location.pathname + location.search);
+  if (application.isLoaded()) {
+    React.renderComponent(application.render(), document.getElementById('page'));
+  }
 }

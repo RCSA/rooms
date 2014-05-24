@@ -9,5 +9,5 @@ html(lang="en")
   body.background
     #page.container
       if application
-        include client/view.jade
+        != application.renderAsString()
     script(src="/build/build.js")
