@@ -1,0 +1,169 @@
+.title
+  h1 Robinson College Room Wiki
+
+if application.loading
+  | Loading...
+else
+  if application.currentPage.getHref() !== '/'
+    .row.visible-xs.visible-sm
+      .col-xs-12
+        a.btn.btn-default(href=application.currentPage.isTopLevel() ? '/' : application.currentPage.data.parentid)
+          span.glyphicon.glyphicon-chevron-left
+            if application.currentPage.isTopLevel() || application.currentPage.data.parentid === '/'
+              = ' Home'
+            else
+              = ' Staircase'
+  .row
+    .col-md-2
+      .border-box
+        ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
+          each page in application.topLevelPages()
+            li(class=application.isSelected(page) ? 'active' : false)
+              a(href=page.getHref())= page.getName()
+    .col-md-2.border-right
+      .border-box
+        ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
+          each page in application.secondLevelPages()
+            if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
+              li(class=application.isSelected(page) ? 'active' : false)
+                a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
+            else if !page.requiresAdmin() || application.user.isAdmin
+              li(class=application.isSelected(page) ? 'active' : false)
+                a(href=page.getHref())= page.getName()
+    .col-md-8
+      #markdown
+        if !application.editMode
+          if application.currentPage.data._id === '/'
+            img.hidden-xs.hidden-sm(src="http://i.imgur.com/hPFV0.png" alt="RCSA Logo" style={float: 'right'})
+          else
+            h1= application.currentPage.getName()
+          != application.currentPage.getHtmlBody()
+          if application.user.isAuthenticated && window
+            if application.currentPage.data.type === 'room' || application.currentPage.data.type === 'staircase'
+              a(href="?edit=true") Edit Page
+            else if application.user.isAdmin
+              a(href="?edit=true") Edit Page
+        else
+          if application.currentPage.data._id !== '/'
+            h1= application.currentPage.getName()
+          form(role='form')
+            .form-group
+              label Page Body
+              textarea.form-control(onChange=application.currentPage.setMarkdownBody.bind(application.currentPage) value= application.currentPage.getMarkdownBody())
+            .form-group
+              label Preview
+              .form-control-static
+              != application.currentPage.getHtmlBody()
+          button.btn.btn-primary(onClick=application.currentPage.saveMarkdownBody.bind(application.currentPage)) Save
+          button.btn.btn-link(onClick=application.currentPage.cancelMarkdownBodyEdit.bind(application.currentPage)) cancel
+      #templated
+        if application.currentPage.isRoom() && !(application.user.isAdmin && window)
+          dl.dl-horizontal
+            if application.currentPage.getBathroomDescription()
+              dt Bathroom
+              dd= application.currentPage.getBathroomDescription()
+            dt Rent Band
+            dd= application.currentPage.getRentBandDescription()
+            dt Floor
+            dd= application.currentPage.getFloorDescription()
+            if application.currentPage.data.facing !== 'unknown'
+              dt Facing
+              dd= application.currentPage.data.facing
+            if application.user.isAuthenticated && application.currentPage.data.rentband !== 0
+              dt= application.getCurrentYear() + ' - ' + (application.getCurrentYear() + 1)
+              dd= application.currentPage.getCurrentYearAllocation() || 'Unknown'
+              dt= application.getNextYear() + ' - ' + (application.getNextYear() + 1)
+              dd= application.currentPage.getNextYearAllocation() || 'Available'
+        if application.user.isAdmin && window && ['/', '/projector'].indexOf(application.currentPage.getHref()) === -1
+          h2 Edit Page Details
+          form.form-horizontal(role="form")
+            .form-group
+              label.col-sm-2.control-label ID
+              .col-sm-10
+                p.form-control-static= application.currentPage.getHref()
+            .form-group
+              label.col-sm-2.control-label Name
+              .col-sm-10
+                input.form-control(
+                  type="text"
+                  value=application.currentPage.data.name
+                  onChange=application.currentPage.setProperty.bind(application.currentPage, 'name'))
+            if application.currentPage.isRoom()
+              .form-group
+                label.col-sm-2.control-label Bathroom
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.bathroomsharing
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'bathroomsharing'))
+                    option(value=0) Unknown
+                    option(value=1) Ensuite
+                    - for (var i = 2; i < 5; i++)
+                      option(value=i)= "Shared between " + i + " people"
+              .form-group
+                label.col-sm-2.control-label Rent Band
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.rentband
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'rentband'))
+                    each band, i in ["Unavailable to Students", "Value", "Standard", "Standard Plus", "Best"]
+                      option(value=i)= band
+              .form-group
+                label.col-sm-2.control-label Floor
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.floor
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'floor'))
+                    option(value=-1) Basement
+                    option(value=0) Ground Floor
+                    option(value=1) First Floor
+                    option(value=2) Second Floor
+                    option(value=3) Third Floor
+                    option(value=4) Fourth Floor
+                    option(value=5) Fith Floor
+                    option(value=6) Sixth Floor
+              .form-group
+                label.col-sm-2.control-label Facing
+                .col-sm-10
+                  select.form-control(
+                    type="text"
+                    value=application.currentPage.data.facing
+                    onChange=application.currentPage.setProperty.bind(application.currentPage, 'facing'))
+                    option(value='unknown') Unknown / Not Applicable
+                    option(value='garden') Garden
+                    option(value='courtyard') Courtyard
+
+          if application.currentPage.isRoom() && application.currentPage.data.rentband !== 0
+            h2 Edit Allocations
+            form.form-horizontal(role="form")
+              - for (var year = 2012; year <= application.getNextYear(); year++)
+                .form-group
+                  label.col-sm-2.control-label= year + ' - ' + (year + 1)
+                  .col-sm-10
+                    input.form-control(
+                      type="text"
+                      value=application.currentPage.data.allocations[year]
+                      onChange=application.currentPage.setAllocation.bind(application.currentPage, year))
+  .row.visible-xs.visible-sm
+    if application.currentPage.isTopLevel()
+      .col-xs-12
+        if application.currentPage.getHref() === '/'
+          h2 Select a Staircase
+          ul.nav.nav-pills
+            each page in application.topLevelPages()
+              if page.getHref() !== '/'
+                li
+                  a(href=page.getHref())= page.getName()
+          h2 Special Pages
+        else
+          h2 Select a Room
+        ul.nav.nav-pills
+          each page in application.secondLevelPages()
+            if !page.requiresAdmin() && page.requiresLogin() && !application.user.isAuthenticated
+              li
+                a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
+            else if !page.requiresAdmin() || application.user.isAdmin
+              li
+                a(href=page.getHref())= page.getName()

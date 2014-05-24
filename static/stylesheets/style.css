@@ -3,8 +3,23 @@ body {
   padding: 0;
 }
 
+.border-box {
+  border: 3px solid #FDC107;
+  padding: 4px;
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+
 .background {
   background-image: url(brick.jpg);
+}
+
+.title h1 {
+  font-size: 3em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px solid #FDC107;
 }
 
 
@@ -12,26 +27,7 @@ body {
   background-color: white;
 }
 
-.page {
-  background-color: white;
-  margin-left: auto;
-  margin-right: auto;
-  width: 1000px;
-}
-
-.page .colmask {
-  padding-left: 300px;
-  overflow: hidden;
-}
-
-.page .colmask .column {
-  position: relative;
-  float: left;
-  padding-bottom: 20010px; /* X + padding-bottom */
-  margin-bottom: -20000px; /* X */
-}
-
-.page .header {
+.header {
   background-image: url(background2.jpg);
   background-repeat: repeat-x;
   height: 150px;
@@ -39,22 +35,22 @@ body {
   vertical-align: central;
 }
 
-.page .header .shortcutLinks {
+.header .shortcutLinks {
   color: black;
   margin-bottom: 0px;
   margin-top: 10px;
   margin-left: 10px;
 }
 
-.page .header .shortcutLinks a {
+.header .shortcutLinks a {
   color: black;
 }
 
-.page .header a {
+.header a {
   color: #FFFFFF;
 }
 
-.page .rcsalogo {
+.rcsalogo {
   background-image: url(bluemarine_logo.png);
   background-repeat: no-repeat;
   height: 85px;
@@ -138,11 +134,7 @@ nav a, .nav a {
 }
 
 textarea {
-  max-width: 700px;
-  min-width: 500px;
   min-height: 400px;
-  height: auto;
-  margin: 30px;
 }
 
 .validationError {
@@ -192,14 +184,6 @@ h2 {
   font-size: 1.2em;
 }
 
-#templated a, .projector a, #markdown li > a:only-child {
-  color: black;
-  -webkit-appearance: none;
-  -webkit-border-radius: 0px;
-  border: none;
-  text-decoration: none;
-}
-
 #templated a:hover, .projector a:hover, #markdown li > a:only-child:hover {
   color: #727272;
 }
@@ -240,109 +224,4 @@ th, td {
 
 td + td, th + th {
   border-left: 1px solid #CCC;
-}
-
-/*Define editor Styles*/
-.ajaxLoader {
-  background-image: url(ajax-loader.gif);
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 22px;
-  width: 126px;
-}
-
-.wmd-panel {
-  width: 50%;
-  min-width: 500px;
-}
-
-.wmd-button-bar {
-  width: 100%;
-  background-color: Silver;
-}
-
-.wmd-input {
-  height: 300px;
-  width: 100%;
-  background-color: Gainsboro;
-  border: 1px solid DarkGray;
-}
-
-.wmd-button-row {
-  position: relative;
-  margin-left: 5px;
-  margin-right: 5px;
-  margin-bottom: 5px;
-  margin-top: 10px;
-  padding: 0px;
-  height: 20px;
-}
-
-.wmd-spacer {
-  width: 1px;
-  height: 20px;
-  margin-left: 14px;
-  position: absolute;
-  background-color: Silver;
-  display: inline-block;
-  list-style: none;
-}
-
-.wmd-button {
-  width: 20px;
-  height: 20px;
-  padding-left: 2px;
-  padding-right: 3px;
-  position: absolute;
-  display: inline-block;
-  list-style: none;
-  cursor: pointer;
-}
-
-  .wmd-button > span {
-    background-image: url(wmd-buttons.png);
-    background-repeat: no-repeat;
-    background-position: 0px 0px;
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-  }
-
-.wmd-spacer1 {
-  left: 50px;
-}
-
-.wmd-spacer2 {
-  left: 175px;
-}
-
-.wmd-spacer3 {
-  left: 300px;
-}
-
-.wmd-prompt-background {
-  background-color: Black;
-}
-
-.wmd-prompt-dialog {
-  border: 1px solid #999999;
-  background-color: #F5F5F5;
-}
-
-.wmd-prompt-dialog > div {
-  font-size: 0.8em;
-  font-family: arial, helvetica, sans-serif;
-}
-
-
-.wmd-prompt-dialog > form > input[type="text"] {
-  border: 1px solid #999999;
-  color: black;
-}
-
-.wmd-prompt-dialog > form > input[type="button"] {
-  border: 1px solid #888888;
-  font-family: trebuchet MS, helvetica, sans-serif;
-  font-size: 0.8em;
-  font-weight: bold;
 }
