@@ -29,11 +29,6 @@ page('*', function (ctx, next) {
     return next();
   }
 
-  //todo: reimplement this
-  if (false && application.editMode && !editMode && application.currentPage && application.currentPage.data.oldBody) {
-    application.currentPage.data.body = application.currentPage.data.oldBody;
-  }
-
   if (application.accessDenied() && !application.user.isAuthenticated) {
     return next();
   }

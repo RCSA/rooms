@@ -16,25 +16,23 @@ else
             else
               = ' Staircase'
   .row
-    .col-md-2
-      .border-box
-        ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
-          each page in app.topLevelPages()
+    .col-md-2.hidden-xs.hidden-sm
+      ul.nav.side-bar-nav
+        each page in app.topLevelPages()
+          li(class=app.isSelected(page) ? 'active' : false)
+            a(href=page.getHref())= page.getName()
+    .col-md-2.hidden-xs.hidden-sm
+      ul.nav.side-bar-nav
+        each page in app.secondLevelPages()
+          if !page.requiresAdmin() && page.requiresLogin() && !app.user.isAuthenticated
+            li(class=app.isSelected(page) ? 'active' : false)
+              a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
+          else if !page.requiresAdmin() || app.user.isAdmin
             li(class=app.isSelected(page) ? 'active' : false)
               a(href=page.getHref())= page.getName()
-    .col-md-2.border-right
-      .border-box
-        ul.nav.nav-pills.nav-stacked.hidden-xs.hidden-sm
-          each page in app.secondLevelPages()
-            if !page.requiresAdmin() && page.requiresLogin() && !app.user.isAuthenticated
-              li(class=app.isSelected(page) ? 'active' : false)
-                a(href='/raven/login/' + encodeURIComponent(page.getHref()))= page.getName()
-            else if !page.requiresAdmin() || app.user.isAdmin
-              li(class=app.isSelected(page) ? 'active' : false)
-                a(href=page.getHref())= page.getName()
     .col-md-8
       #markdown
-        if !app.editMode
+        if !app.isEditing()
           if app.getPage().getHref() === '/'
             img.hidden-xs.hidden-sm(src="http://i.imgur.com/hPFV0.png" alt="RCSA Logo" style={float: 'right'})
           else
@@ -51,13 +49,14 @@ else
           form(role='form')
             .form-group
               label Page Body
-              textarea.form-control(onChange=app.getPage().setMarkdownBody.bind(app.getPage()) value= app.getPage().getMarkdownBody())
+              textarea.form-control(onChange=app.setEditingMarkdown.bind(app) value=app.getEditingMarkdown())
             .form-group
               label Preview
               .form-control-static
-              != app.getPage().getHtmlBody()
-          button.btn.btn-primary(onClick=app.getPage().saveMarkdownBody.bind(app.getPage())) Save
-          button.btn.btn-link(onClick=app.getPage().cancelMarkdownBodyEdit.bind(app.getPage())) cancel
+                != app.getEditingPreview()
+          button.btn.btn-primary(onClick=app.saveMarkdownBody.bind(app)) Save
+          = ' '
+          a(href=location.pathname) cancel
       #templated
         if app.getPage().isRoom() && !(app.user.isAdmin && window)
           dl.dl-horizontal
@@ -147,7 +146,7 @@ else
                     input.form-control(
                       type="text"
                       value=app.getPage().data.allocations[year]
-                      onChange=app.getPage().setAllocation.bind(app.getPage(), year))
+                      onChange=app.getPage().setProperty.bind(app.getPage(), 'allocations.' + year))
   .row.visible-xs.visible-sm
     if app.getPage().isTopLevel()
       .col-xs-12

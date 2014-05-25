@@ -3,11 +3,16 @@ body {
   padding: 0;
 }
 
-.border-box {
+.nav.side-bar-nav {
   border: 3px solid #FDC107;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 0px;
   margin-bottom: 1em;
+}
+.nav.side-bar-nav>li>a {
+  width: auto;
+}
+.nav.side-bar-nav>li.active>a {
+  background: #FDC107;
 }
 
 .background {

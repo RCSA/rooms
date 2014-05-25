@@ -2,6 +2,8 @@
 
 var assert = require('assert');
 var React = require('react');
+var marked = require('marked');
+var page = require('page');
 var Page = require('./page.js');
 var view = require('../view');
 
@@ -23,6 +25,13 @@ function Application(pages) {
     if (page.length === 1) this._page = page[0];
     else this._page = null;
 
+    if (this.isEditing() && this.getPage()) {
+      this.editedMarkdown = this.editedMarkdown || this.getPage().getMarkdownBody();
+    } else {
+      this.editedMarkdown = null;
+    }
+
+
     this.subscriptions.forEach(function (subscription) {
       subscription();
     });
@@ -40,7 +49,12 @@ function Application(pages) {
     this.user = user;
     update();
   };
+  this.setEditingMarkdown = function (e) {
+    this.editedMarkdown = e.target.value;
+    update();
+  };
 
+  this.editedMarkdown = null;
   this.pathname = '/';
   this.querystring = {edit: false};
   this.user = {isAuthenticated: false, isAdmin: false};
@@ -96,4 +110,18 @@ Application.prototype.getCurrentYear = function () {
 };
 Application.prototype.getNextYear = function () {
   return this.getCurrentYear() + 1;
+};
+
+Application.prototype.isEditing = function () {
+  return this.querystring.edit;
+};
+Application.prototype.getEditingMarkdown = function () {
+  return this.editedMarkdown || '';
+};
+Application.prototype.getEditingPreview = function () {
+  return marked(this.getEditingMarkdown());
+};
+Application.prototype.saveMarkdownBody = function () {
+  this.getPage().data.set('body', this.getEditingMarkdown());
+  page(location.pathname);
 };
