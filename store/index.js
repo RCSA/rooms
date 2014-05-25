@@ -33,9 +33,7 @@ exports.updatePageAllocation = function (id, year, name) {
     return res;
   });
 };
-exports.updatePageProperty = function (id, property, value) {
-  var update = {};
-  update[property] = value;
+exports.updatePage = function (id, update) {
   return db.pages.update({_id: id}, {'$set': update}).then(function (res) {
     assert(res.updatedExisting === true);
     assert(res.n === 1);

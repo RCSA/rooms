@@ -2,7 +2,6 @@
 
 var marked = require('marked');
 var request = require('then-request');
-var page = require('page');
 
 var RENT_BANDS = ["Unavailable to Students", "Value", "Standard", "Standard Plus", "Best"];
 
@@ -28,32 +27,35 @@ Page.prototype.compareTo = function (other) {
   if (this.data.floor !== undefined &&other.data.floor !== undefined && this.data.floor !== other.data.floor) {
     return this.data.floor - other.data.floor;
   }
-  
-  var aNum = this.data._id.match(/([0-9]+)[^\/]*$/);
-  var bNum = other.data._id.match(/([0-9]+)[^\/]*$/);
+
+  var aNum = this.data.id.match(/([0-9]+)[^\/]*$/);
+  var bNum = other.data.id.match(/([0-9]+)[^\/]*$/);
   if (aNum && bNum) {
-    var diff = (+aNum[1] - +bNum[1]) || this.data._id.length - other.data._id.length;
+    var diff = (+aNum[1] - +bNum[1]) || this.data.id.length - other.data.id.length;
     if (diff) return diff;
   }
-  if (this.data._id > other.data._id) {
+  if (this.data.id > other.data.id) {
     return 1;
-  } else if (this.data._id < other.data._id) {
+  } else if (this.data.id < other.data.id) {
     return -1;
   }
 
   return 0;
 };
 
+Page.prototype.getParent = function () {
+  return this.data.parentid;
+};
 Page.prototype.isTopLevel = function () {
   return this.data.parentid === 'Root';
 };
 Page.prototype.isSameSection = function (parent) {
   return parent.isTopLevel() ?
-    this.data.parentid === parent.data._id :
+    this.data.parentid === parent.data.id :
     this.data.parentid === parent.data.parentid;
 };
 Page.prototype.getHref = function () {
-  return this.data._id;
+  return this.data.id;
 };
 Page.prototype.getName = function () {
   return this.data.name;
@@ -61,74 +63,13 @@ Page.prototype.getName = function () {
 Page.prototype.getHtmlBody = function () {
   return this.data.body ? marked(this.data.body) : 'This page has no content.';
 };
+
 Page.prototype.getMarkdownBody = function () {
   return this.data.body;
 };
-Page.prototype.setMarkdownBody = function (e) {
-  if (this.data.oldBody === undefined) this.data.oldBody = this.data.body || '';
-  this.data.body = e.target.value;
-  page.show(location.pathname + location.search);
-};
-Page.prototype.saveMarkdownBody = function () {
-  if (this.data.body === this.data.oldBody || this.data.oldBody === undefined) {
-    this.data.oldBody = undefined;
-    return page(location.pathname);
-  }
-  request('/data/pages/body', {
-    method: 'POST',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({id: this.data._id, body: this.data.body})
-  }).then(function (res) {
-    //check for success
-    res.getBody();
-  }).done(function () {
-    this.data.oldBody = undefined;
-    page(location.pathname);
-  }.bind(this), function (err) {
-    alert('There was an error saving this page');
-  });
-};
-Page.prototype.cancelMarkdownBodyEdit = function () {
-  // leaving edit mode automatically cancels edits
-  page(location.pathname);
-};
-Page.prototype.setAllocation = function (year, e) {
-  this.data.allocations[year] = e.target.value;
-  page.show(location.pathname + location.search);
-  clearTimeout(this.posts['allocations.' + year]);
-  this.posts['allocations.' + year] = setTimeout(function () {
-    request('/data/pages/allocation', {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify({id: this.data._id, year: year, allocation: this.data.allocations[year]})
-    }).then(function (res) {
-      //check for success
-      res.getBody();
-    }).done(function () {
-      // on success
-    }.bind(this), function (err) {
-      alert('There was an error saving this allocation');
-    });
-  }.bind(this), 200);
-};
 Page.prototype.setProperty = function (name, e) {
-  this.data[name] = typeof this.data[name] === 'number' ? +e.target.value : e.target.value;
-  page.show(location.pathname + location.search);
-  clearTimeout(this.posts[name]);
-  this.posts[name] = setTimeout(function () {
-    request('/data/pages/property', {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify({id: this.data._id, property: name, value: this.data[name]})
-    }).then(function (res) {
-      //check for success
-      res.getBody();
-    }).done(function () {
-      // on success
-    }.bind(this), function (err) {
-      alert('There was an error saving this property');
-    });
-  }.bind(this), 200);
+  var value = typeof this.data[name] === 'number' ? +e.target.value : e.target.value;
+  this.data.set(name, value);
 };
 
 Page.prototype.isRoom = function () {
@@ -165,8 +106,8 @@ Page.prototype.getNextYearAllocation = function () {
 };
 
 Page.prototype.requiresLogin = function () {
-  return this.requiresAdmin() || ['/projector'].indexOf(this.data._id) !== -1;
+  return this.requiresAdmin() || ['/projector'].indexOf(this.data.id) !== -1;
 };
 Page.prototype.requiresAdmin = function () {
-  return ['/allocationEdit'].indexOf(this.data._id) !== -1;
+  return ['/allocationEdit'].indexOf(this.data.id) !== -1;
 };

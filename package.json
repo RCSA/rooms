@@ -18,7 +18,14 @@
     "react": "~0.10.0",
     "constantinople": "~2.0.0",
     "react-jade": "0.0.6",
-    "promise": "~5.0.0"
+    "promise": "~5.0.0",
+    "uid": "0.0.2",
+    "primus": "~2.2.2",
+    "engine.io": "~1.2.1",
+    "derequire": "~0.8.0",
+    "primus-express-session": "0.0.2",
+    "jws": "~0.2.5",
+    "jsonwebtoken": "~0.4.0"
   },
   "devDependencies": {},
   "scripts": {
