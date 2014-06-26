@@ -17,7 +17,7 @@
     "envify": "~1.2.1",
     "react": "~0.10.0",
     "constantinople": "~2.0.0",
-    "react-jade": "0.0.6",
+    "react-jade": "0.0.7",
     "promise": "~5.0.0",
     "uid": "0.0.2",
     "primus": "~2.2.2",

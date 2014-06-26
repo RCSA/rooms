@@ -38,7 +38,7 @@ else
           else
             h1= app.getPage().getName()
           != app.getPage().getHtmlBody()
-          if app.user.isAuthenticated && window
+          if app.user.isAuthenticated
             if app.getPage().data.type === 'room' || app.getPage().data.type === 'staircase'
               a(href="?edit=true") Edit Page
             else if app.user.isAdmin
@@ -49,16 +49,16 @@ else
           form(role='form')
             .form-group
               label Page Body
-              textarea.form-control(onChange=app.setEditingMarkdown.bind(app) value=app.getEditingMarkdown())
+              textarea.form-control(onChange=app.setEditingMarkdown() value=app.getEditingMarkdown())
             .form-group
               label Preview
               .form-control-static
                 != app.getEditingPreview()
-          button.btn.btn-primary(onClick=app.saveMarkdownBody.bind(app)) Save
+          button.btn.btn-primary(onClick=app.saveMarkdownBody()) Save
           = ' '
           a(href=location.pathname) cancel
       #templated
-        if app.getPage().isRoom() && !(app.user.isAdmin && window)
+        if app.getPage().isRoom() && !app.user.isAdmin
           dl.dl-horizontal
             if app.getPage().getBathroomDescription()
               dt Bathroom
@@ -75,7 +75,7 @@ else
               dd= app.getPage().getCurrentYearAllocation() || 'Unknown'
               dt= app.getNextYear() + ' - ' + (app.getNextYear() + 1)
               dd= app.getPage().getNextYearAllocation() || 'Available'
-        if app.user.isAdmin && window && ['/', '/projector'].indexOf(app.getPage().getHref()) === -1
+        if app.user.isAdmin && ['/', '/projector'].indexOf(app.getPage().getHref()) === -1
           h2 Edit Page Details
           form.form-horizontal(role="form")
             .form-group
@@ -88,7 +88,7 @@ else
                 input.form-control(
                   type="text"
                   value=app.getPage().data.name
-                  onChange=app.getPage().setProperty.bind(app.getPage(), 'name'))
+                  onChange=app.getPage().setProperty('name'))
             if app.getPage().isRoom()
               .form-group
                 label.col-sm-2.control-label Bathroom
@@ -96,7 +96,7 @@ else
                   select.form-control(
                     type="text"
                     value=app.getPage().data.bathroomsharing
-                    onChange=app.getPage().setProperty.bind(app.getPage(), 'bathroomsharing'))
+                    onChange=app.getPage().setProperty('bathroomsharing'))
                     option(value=0) Unknown
                     option(value=1) Ensuite
                     - for (var i = 2; i < 5; i++)
@@ -107,7 +107,7 @@ else
                   select.form-control(
                     type="text"
                     value=app.getPage().data.rentband
-                    onChange=app.getPage().setProperty.bind(app.getPage(), 'rentband'))
+                    onChange=app.getPage().setProperty('rentband'))
                     each band, i in ["Unavailable to Students", "Value", "Standard", "Standard Plus", "Best"]
                       option(value=i)= band
               .form-group
@@ -116,7 +116,7 @@ else
                   select.form-control(
                     type="text"
                     value=app.getPage().data.floor
-                    onChange=app.getPage().setProperty.bind(app.getPage(), 'floor'))
+                    onChange=app.getPage().setProperty('floor'))
                     option(value=-1) Basement
                     option(value=0) Ground Floor
                     option(value=1) First Floor
@@ -131,7 +131,7 @@ else
                   select.form-control(
                     type="text"
                     value=app.getPage().data.facing
-                    onChange=app.getPage().setProperty.bind(app.getPage(), 'facing'))
+                    onChange=app.getPage().setProperty('facing'))
                     option(value='unknown') Unknown / Not Applicable
                     option(value='garden') Garden
                     option(value='courtyard') Courtyard
@@ -146,7 +146,7 @@ else
                     input.form-control(
                       type="text"
                       value=app.getPage().data.allocations[year]
-                      onChange=app.getPage().setProperty.bind(app.getPage(), 'allocations.' + year))
+                      onChange=app.getPage().setProperty('allocations.' + year))
   .row.visible-xs.visible-sm
     if app.getPage().isTopLevel()
       .col-xs-12
